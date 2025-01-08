@@ -1,42 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
-html, body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  background-color: #000;
-  color: #4af626;
-  font-family: monospace;
-}
-
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.terminal-container {
-  width: 90%;
-  max-width: 800px;
-  margin: 0 auto;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.terminal-glow {
-  color: #4af626;
-  text-shadow: 0 0 10px rgba(74, 246, 38, 0.8);
-}
-
-.terminal-button {
-  width: 100%;
-  max-width: 200px;
-  text-align: center;
-}
 
 .terminal-button:disabled {
   opacity: 0.5;
