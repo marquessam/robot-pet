@@ -104,7 +104,6 @@ const RobotPet = () => {
   const [cursorVisible, setCursorVisible] = useState(true);
   const [resources, setResources] = useState<Resource[]>(initialResources);
   
-  // Start with one bot named SM-33
   const [bots, setBots] = useState<Bot[]>([{
     id: 'bot-1',
     name: 'SM-33',
@@ -424,7 +423,6 @@ const RobotPet = () => {
     });
 
     const newBotId = `bot-${bots.length + 1}`;
-    // Example names for bots: alternate between a few patterns
     const botNames = ['C3-vxx', 'ZX-12', 'VX-99', 'SM-33'];
     const randomName = botNames[bots.length % botNames.length] + `-${bots.length + 1}`;
     const randomStyle = botStyles[Math.floor(Math.random() * botStyles.length)];
