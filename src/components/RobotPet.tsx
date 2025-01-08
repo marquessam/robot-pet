@@ -88,7 +88,52 @@ const RobotPet = () => {
     ╰──╨───╨──╯
   `
 
-  // [Previous mission and upgrade functions remain the same]
+  const missions: Mission[] = [
+    {
+      name: 'Scrap Yard Search',
+      energyCost: 20,
+      happinessCost: 10,
+      duration: 10,
+      requiredBatteryLevel: 30,
+      rewards: [
+        { name: 'bolts', amount: 2 },
+        { name: 'wires', amount: 1 }
+      ]
+    },
+    {
+      name: 'Factory Exploration',
+      energyCost: 40,
+      happinessCost: 20,
+      duration: 20,
+      requiredBatteryLevel: 50,
+      rewards: [
+        { name: 'magnets', amount: 2 },
+        { name: 'wires', amount: 2 },
+        { name: 'bolts', amount: 1 }
+      ]
+    }
+  ]
+
+  const getRobotState = () => {
+    if (isOnMission) return `
+    ╭──────────╮
+    │  > < >  │
+    │  ─────  │
+    │ |=====| │
+    ╰──────────╯
+    │  ║   ║  │
+    ╰──╨───╨──╯
+    `
+    if (energy < 30) return robotTired
+    if (happiness > 80) return robotHappy
+    return robotNormal
+  }
+
+  const charge = () => {
+    const chargeAmount = upgrades.find(u => u.name === 'Battery Boost')?.applied ? 30 : 20
+    setEnergy(Math.min(100, energy + chargeAmount))
+    setLastInteraction('Charging... Battery replenished!')
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 p-8 flex items-center justify-center">
