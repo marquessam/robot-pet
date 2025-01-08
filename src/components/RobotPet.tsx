@@ -29,6 +29,7 @@ const RobotPet = () => {
   const [lastInteraction, setLastInteraction] = useState('')
   const [isOnMission, setIsOnMission] = useState(false)
   const [missionTimer, setMissionTimer] = useState<number | null>(null)
+  const [missionTimeLeft, setMissionTimeLeft] = useState<number | null>(null)
   const [resources, setResources] = useState<Resource[]>([
     { name: 'bolts', amount: 0 },
     { name: 'magnets', amount: 0 },
@@ -49,9 +50,7 @@ const RobotPet = () => {
     }
   ])
 
-  // Blink cursor effect
-  const [missionTimeLeft, setMissionTimeLeft] = useState<number | null>(null)
-
+  // Cursor blink effect
   useEffect(() => {
     const interval = setInterval(() => {
       setCursorVisible(v => !v)
@@ -59,6 +58,7 @@ const RobotPet = () => {
     return () => clearInterval(interval)
   }, [])
 
+  // Mission timer effect
   useEffect(() => {
     if (isOnMission && missionTimeLeft !== null) {
       const timer = setInterval(() => {
@@ -144,23 +144,7 @@ const RobotPet = () => {
     return robotNormal
   }
 
-  const charge = () => {
-    const chargeAmount = upgrades.find(u => u.name === 'Battery Boost')?.applied ? 30 : 20
-    setEnergy(Math.min(100, energy + chargeAmount))
-    setLastInteraction('Charging... Battery replenished!')
-  }
-
-  const play = () => {
-    if (energy >= 10) {
-      setEnergy(Math.max(0, energy - 10))
-      setHappiness(Math.min(100, happiness + 15))
-      setLastInteraction('Playing with robot! It seems happy!')
-    } else {
-      setLastInteraction('Robot is too tired to play...')
-    }
-  }
-
-      const startMission = (mission: Mission) => {
+  const startMission = (mission: Mission) => {
     if (energy < mission.requiredBatteryLevel) {
       setLastInteraction('Not enough energy for this mission!')
       return
@@ -188,7 +172,7 @@ const RobotPet = () => {
     setMissionTimer(timer as unknown as number)
   }
 
-      const completeMission = (mission: Mission) => {
+  const completeMission = (mission: Mission) => {
     setIsOnMission(false)
     setMissionTimer(null)
     setMissionTimeLeft(null)
@@ -205,6 +189,22 @@ const RobotPet = () => {
     })
 
     setLastInteraction(`Mission Complete: ${mission.name}! Collected resources!`)
+  }
+
+  const charge = () => {
+    const chargeAmount = upgrades.find(u => u.name === 'Battery Boost')?.applied ? 30 : 20
+    setEnergy(Math.min(100, energy + chargeAmount))
+    setLastInteraction('Charging... Battery replenished!')
+  }
+
+  const play = () => {
+    if (energy >= 10) {
+      setEnergy(Math.max(0, energy - 10))
+      setHappiness(Math.min(100, happiness + 15))
+      setLastInteraction('Playing with robot! It seems happy!')
+    } else {
+      setLastInteraction('Robot is too tired to play...')
+    }
   }
 
   const applyUpgrade = (upgrade: Upgrade) => {
@@ -241,8 +241,8 @@ const RobotPet = () => {
   return (
     <div className="terminal-container">
       <div className="relative screen rounded-xl overflow-hidden shadow-[0_0_20px_rgba(74,246,38,0.2)] border border-[#4af626]/20 crt">
-        <div className="relative font-mono text-[#4af626] p-8 h-full overflow-y-auto">
-          {/* Title and Boot Sequence */}
+        <div className="relative font-mono text-[#4af626] p-8">
+          {/* Title */}
           <div className="text-xs mb-6 flex flex-col gap-1 terminal-glow opacity-50">
             <div>ROBOPET v1.0.0 - TERMINAL MODE</div>
             <div>SYSTEM ACTIVE...</div>
@@ -339,6 +339,9 @@ const RobotPet = () => {
                       className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
                     >
                       [{upgrade.name}] {upgrade.applied ? '*' : ''}
+                      <div className="text-xs opacity-70 mt-1 pl-2">
+                        {'>>'} Cost: {upgrade.cost.map(c => `${c.amount} ${c.name}`).join(', ')}
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -348,23 +351,6 @@ const RobotPet = () => {
 
           {/* Status Line */}
           <div className="text-xs text-[#4af626]/70 border-t border-[#4af626]/20 mt-6 pt-4 terminal-glow">
-            {'>>'} {lastInteraction || 'Awaiting command...'}{cursorVisible ? '_' : ' '}
-          </div>-[#4af626] disabled:text-[#4af626]/30"
-                  >
-                    [{upgrade.name}] {upgrade.applied ? '(INSTALLED)' : ''}
-                    <div className="text-xs text-[#4af626]/70">
-                      {'>>'} {upgrade.effect}
-                      <br/>
-                      {'>>'} COST: {upgrade.cost.map(c => `${c.amount} ${c.name}`).join(', ')}
-                    </div>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Status Line */}
-          <div className="text-xs text-[#4af626]/70 border-t border-[#4af626]/20 pt-4 terminal-glow">
             {'>>'} {lastInteraction || 'Awaiting command...'}{cursorVisible ? '_' : ' '}
           </div>
         </div>
