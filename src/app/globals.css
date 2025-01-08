@@ -9,21 +9,21 @@ html, body {
   background-color: #000;
   color: #4af626;
   font-family: monospace;
-  letter-spacing: 0.05em; /* Slight spacing between letters for a retro feel */
+  letter-spacing: 0.05em; /* Retro digital feel */
 }
 
 body {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem; /* Extra padding around the body for spacing */
+  padding: 1rem;
 }
 
 .terminal-container {
   width: 90%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 1rem; /* Add internal padding */
+  padding: 1rem;
   animation: fadeIn 0.5s ease-in;
   box-sizing: border-box;
 }
@@ -34,11 +34,11 @@ body {
 
 .screen {
   background: #000;
-  border: 2px solid #4af626; /* Slightly thicker border for emphasis */
+  border: 2px solid #4af626;
   border-radius: 8px;
   position: relative;
   overflow: hidden;
-  padding: 1.5rem; /* Increase padding for content spacing */
+  padding: 1.5rem;
   box-sizing: border-box;
 }
 
@@ -50,7 +50,7 @@ button {
   padding: 8px 16px;
   transition: all 0.2s ease;
   cursor: pointer;
-  margin: 0.25rem;  /* Add margin around buttons for separation */
+  margin: 0.25rem;
 }
 
 button:hover:not(:disabled) {
@@ -107,7 +107,7 @@ button:disabled {
   font-weight: bold;
 }
 
-/* Layout */
+/* Layout for grid items */
 .terminal-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -149,7 +149,24 @@ button:disabled {
   text-align: center;
   position: relative;
   display: inline-block;
-  padding: 1rem; /* Add space around the robot display */
+  padding: 1rem;
+}
+
+/* Stats Readout */
+.stats-readout {
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #4af626;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.stats-readout h2,
+.stats-readout h3 {
+  text-shadow: 0 0 10px rgba(74, 246, 38, 0.7);
+}
+
+.stats-readout p {
+  margin: 0.2rem 0;
 }
 
 /* Additional spacing for elements */
@@ -158,7 +175,10 @@ pre {
   padding: 0.5rem;
 }
 
-button, .terminal-glow, .status-line, select {
+button,
+.terminal-glow,
+.status-line,
+select {
   font-size: 1rem;
 }
 
