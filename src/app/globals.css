@@ -214,6 +214,6 @@ select:focus {
 }
 
 .pixel {
-  width: 10px;
+  width: 10px;      /* Adjust pixel size as desired */
   height: 10px;
 }
