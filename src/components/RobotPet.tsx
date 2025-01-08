@@ -38,7 +38,6 @@ const defaultUpgrades: Upgrade[] = [
   { name: 'Happy Circuits', cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }], applied: false, effect: 'Reduces happiness loss from missions' },
   { name: 'Advanced Sensors', cost: [{ name: 'circuit', amount: 2 }, { name: 'magnets', amount: 2 }], applied: false, effect: 'Increases mission success rate' },
   { name: 'Reinforced Chassis', cost: [{ name: 'bolts', amount: 6 }, { name: 'wires', amount: 4 }], applied: false, effect: 'Reduces energy loss during missions' },
-  // Additional upgrades
   { name: 'Extended Battery', cost: [{ name: 'bolts', amount: 2 }, { name: 'circuit', amount: 1 }], applied: false, effect: 'Increases max energy' },
   { name: 'Enhanced AI', cost: [{ name: 'magnets', amount: 4 }, { name: 'circuit', amount: 3 }], applied: false, effect: 'Improves decision making' }
 ];
@@ -50,7 +49,7 @@ const initialResources: Resource[] = [
   { name: 'circuit', amount: 0 }
 ];
 
-const botEmojis = ["🤖", "🐱", "🐶", "🦊", "🐻‍❄️", "🦾", "👾"]; // added more bot types
+const botEmojis = ["🤖", "🐱", "🐶", "🦊", "🐻‍❄️", "🦾", "👾"];
 
 const normalFace = "[ o--o ]";
 const blinkFace = "[ >--< ]";
@@ -114,6 +113,13 @@ const RobotPet = () => {
     }
   }, [currentBot.isOnMission, currentBot.happiness, currentBot.id]);
 
+  // "Returning" effect when 3 seconds or less remain
+  useEffect(() => {
+    if (currentBot.isOnMission && currentBot.missionTimeLeft !== null && currentBot.missionTimeLeft <= 3) {
+      updateBotState(currentBot.id, { asciiArt: "Returning..." });
+    }
+  }, [currentBot.isOnMission, currentBot.missionTimeLeft, currentBot.id]);
+
   useEffect(() => {
     if (currentBot && currentBot.energy <= 0) {
       setLastInteraction(`${currentBot.name} has died.`);
@@ -169,11 +175,13 @@ const RobotPet = () => {
       setLastInteraction('Already on a mission!');
       return;
     }
+
     const newEnergy = Math.max(0, currentBot.energy - mission.energyCost);
     const happinessCost = currentBot.upgrades.find(u => u.name === 'Happy Circuits' && u.applied)
       ? Math.floor(mission.happinessCost * 0.7)
       : mission.happinessCost;
     const newHappiness = Math.max(0, currentBot.happiness - happinessCost);
+
     updateBotState(currentBot.id, {
       isOnMission: true,
       missionTimeLeft: mission.duration,
@@ -181,7 +189,9 @@ const RobotPet = () => {
       happiness: newHappiness,
       asciiArt: "← Leaving..."
     });
+
     setLastInteraction(`Started mission: ${mission.name}`);
+
     setTimeout(() => {
       completeMission(mission);
     }, mission.duration * 1000);
@@ -193,6 +203,7 @@ const RobotPet = () => {
       missionTimeLeft: null,
       asciiArt: generateAsciiBot(normalFace)
     });
+
     setResources(prevResources => {
       const newResources = [...prevResources];
       mission.rewards.forEach(reward => {
@@ -203,6 +214,7 @@ const RobotPet = () => {
       });
       return newResources;
     });
+
     setLastInteraction(`Mission Complete: ${mission.name}! Collected resources!`);
   };
 
@@ -348,7 +360,7 @@ const RobotPet = () => {
               </div>
             </div>
 
-            {/* Top Right: Bot Stats and Installed Upgrades with buttons below */}
+            {/* Top Right: Bot Stats and Installed Upgrades */}
             <div className="stats-readout border border-[#4af626]/30 p-4 rounded">
               <h2 className="text-lg mb-2 terminal-glow">Bot Stats</h2>
               <div className="mb-4">
@@ -421,13 +433,8 @@ const RobotPet = () => {
             </div>
           </div>
 
+          {/* Bottom Section for Build Bot */}
           <div className="grid grid-cols-2 gap-6 mt-6">
-            <div className="space-y-6">
-              <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} COMMANDS</div>
-              <div className="flex gap-2 justify-center">
-                {/* Charge/Play buttons moved to top left */}
-              </div>
-            </div>
             <div className="space-y-6">
               <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} BUILD BOT</div>
               <button
