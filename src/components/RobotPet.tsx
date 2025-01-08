@@ -1,10 +1,226 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 
-// [Previous interfaces remain the same]
+interface Resource {
+  name: string
+  amount: number
+}
+
+interface Mission {
+  name: string
+  energyCost: number
+  happinessCost: number
+  duration: number
+  rewards: Resource[]
+  requiredBatteryLevel: number
+}
+
+interface Upgrade {
+  name: string
+  cost: Resource[]
+  applied: boolean
+  effect: string
+}
 
 const RobotPet = () => {
-  // [Previous state declarations and functions remain the same]
+  const [cursorVisible, setCursorVisible] = useState(true)
+  const [energy, setEnergy] = useState(100)
+  const [happiness, setHappiness] = useState(100)
+  const [lastInteraction, setLastInteraction] = useState('')
+  const [isOnMission, setIsOnMission] = useState(false)
+  const [missionTimer, setMissionTimer] = useState<number | null>(null)
+  const [resources, setResources] = useState<Resource[]>([
+    { name: 'bolts', amount: 0 },
+    { name: 'magnets', amount: 0 },
+    { name: 'wires', amount: 0 }
+  ])
+  const [upgrades, setUpgrades] = useState<Upgrade[]>([
+    {
+      name: 'Battery Boost',
+      cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }],
+      applied: false,
+      effect: 'Increases energy gain from charging'
+    },
+    {
+      name: 'Happy Circuits',
+      cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }],
+      applied: false,
+      effect: 'Reduces happiness loss from missions'
+    }
+  ])
+
+  // Blink cursor effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCursorVisible(v => !v)
+    }, 530)
+    return () => clearInterval(interval)
+  }, [])
+
+  const missions: Mission[] = [
+    {
+      name: 'Scrap Yard Search',
+      energyCost: 20,
+      happinessCost: 10,
+      duration: 10,
+      requiredBatteryLevel: 30,
+      rewards: [
+        { name: 'bolts', amount: 2 },
+        { name: 'wires', amount: 1 }
+      ]
+    },
+    {
+      name: 'Factory Exploration',
+      energyCost: 40,
+      happinessCost: 20,
+      duration: 20,
+      requiredBatteryLevel: 50,
+      rewards: [
+        { name: 'magnets', amount: 2 },
+        { name: 'wires', amount: 2 },
+        { name: 'bolts', amount: 1 }
+      ]
+    }
+  ]
+
+  const robotNormal = `
+    ╭──────────╮
+    │  ■ ■ ■  │
+    │  ─────  │
+    │ |=====| │
+    ╰──────────╯
+    │  ║   ║  │
+    ╰──╨───╨──╯
+  `
+
+  const robotHappy = `
+    ╭──────────╮
+    │  ♦ ♦ ♦  │
+    │  ─────  │
+    │ |=====| │
+    ╰──────────╯
+    │  ║   ║  │
+    ╰──╨───╨──╯
+  `
+
+  const robotTired = `
+    ╭──────────╮
+    │  × × ×  │
+    │  ─────  │
+    │ |=====| │
+    ╰──────────╯
+    │  ║   ║  │
+    ╰──╨───╨──╯
+  `
+
+  const robotMission = `
+    ╭──────────╮
+    │  {'>'}{'<'}{'>'}  │
+    │  ─────  │
+    │ |=====| │
+    ╰──────────╯
+    │  ║   ║  │
+    ╰──╨───╨──╯
+  `
+
+  const getRobotState = () => {
+    if (isOnMission) return robotMission
+    if (energy < 30) return robotTired
+    if (happiness > 80) return robotHappy
+    return robotNormal
+  }
+
+  const charge = () => {
+    const chargeAmount = upgrades.find(u => u.name === 'Battery Boost')?.applied ? 30 : 20
+    setEnergy(Math.min(100, energy + chargeAmount))
+    setLastInteraction('Charging... Battery replenished!')
+  }
+
+  const play = () => {
+    if (energy >= 10) {
+      setEnergy(Math.max(0, energy - 10))
+      setHappiness(Math.min(100, happiness + 15))
+      setLastInteraction('Playing with robot! It seems happy!')
+    } else {
+      setLastInteraction('Robot is too tired to play...')
+    }
+  }
+
+  const startMission = (mission: Mission) => {
+    if (energy < mission.requiredBatteryLevel) {
+      setLastInteraction('Not enough energy for this mission!')
+      return
+    }
+    if (isOnMission) {
+      setLastInteraction('Already on a mission!')
+      return
+    }
+
+    setIsOnMission(true)
+    setEnergy(Math.max(0, energy - mission.energyCost))
+    
+    const happinessCost = upgrades.find(u => u.name === 'Happy Circuits')?.applied 
+      ? Math.floor(mission.happinessCost * 0.7) 
+      : mission.happinessCost
+    
+    setHappiness(Math.max(0, happiness - happinessCost))
+    setLastInteraction(`Started mission: ${mission.name}`)
+
+    const timer = setTimeout(() => {
+      completeMission(mission)
+    }, mission.duration * 1000)
+
+    setMissionTimer(timer as unknown as number)
+  }
+
+  const completeMission = (mission: Mission) => {
+    setIsOnMission(false)
+    setMissionTimer(null)
+    
+    setResources(prevResources => {
+      const newResources = [...prevResources]
+      mission.rewards.forEach(reward => {
+        const resourceIndex = newResources.findIndex(r => r.name === reward.name)
+        if (resourceIndex !== -1) {
+          newResources[resourceIndex].amount += reward.amount
+        }
+      })
+      return newResources
+    })
+
+    setLastInteraction(`Mission Complete: ${mission.name}! Collected resources!`)
+  }
+
+  const applyUpgrade = (upgrade: Upgrade) => {
+    const canAfford = upgrade.cost.every(cost => {
+      const resource = resources.find(r => r.name === cost.name)
+      return resource && resource.amount >= cost.amount
+    })
+
+    if (!canAfford) {
+      setLastInteraction('Not enough resources for this upgrade!')
+      return
+    }
+
+    setResources(prevResources => {
+      const newResources = [...prevResources]
+      upgrade.cost.forEach(cost => {
+        const resourceIndex = newResources.findIndex(r => r.name === cost.name)
+        if (resourceIndex !== -1) {
+          newResources[resourceIndex].amount -= cost.amount
+        }
+      })
+      return newResources
+    })
+
+    setUpgrades(prevUpgrades => {
+      return prevUpgrades.map(u => 
+        u.name === upgrade.name ? { ...u, applied: true } : u
+      )
+    })
+
+    setLastInteraction(`Upgrade applied: ${upgrade.name}!`)
+  }
 
   return (
     <div className="min-h-screen bg-[#0d0208] p-4 flex items-center justify-center">
