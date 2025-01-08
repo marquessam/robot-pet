@@ -9,31 +9,37 @@ html, body {
   background-color: #000;
   color: #4af626;
   font-family: monospace;
+  letter-spacing: 0.05em; /* Slight spacing between letters for a retro feel */
 }
 
 body {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 1rem; /* Extra padding around the body for spacing */
 }
 
 .terminal-container {
   width: 90%;
   max-width: 800px;
   margin: 0 auto;
+  padding: 1rem; /* Add internal padding */
   animation: fadeIn 0.5s ease-in;
+  box-sizing: border-box;
 }
 
 .terminal-glow {
-  text-shadow: 0 0 10px rgba(74, 246, 38, 0.8);
+  text-shadow: 0 0 10px rgba(74, 246, 38, 0.7);
 }
 
 .screen {
   background: #000;
-  border: 1px solid #4af626;
+  border: 2px solid #4af626; /* Slightly thicker border for emphasis */
   border-radius: 8px;
   position: relative;
   overflow: hidden;
+  padding: 1.5rem; /* Increase padding for content spacing */
+  box-sizing: border-box;
 }
 
 /* Buttons */
@@ -44,6 +50,7 @@ button {
   padding: 8px 16px;
   transition: all 0.2s ease;
   cursor: pointer;
+  margin: 0.25rem;  /* Add margin around buttons for separation */
 }
 
 button:hover:not(:disabled) {
@@ -97,6 +104,7 @@ button:disabled {
 /* Mission timer */
 .mission-timer {
   animation: pulse 1s infinite;
+  font-weight: bold;
 }
 
 /* Layout */
@@ -116,6 +124,7 @@ button:disabled {
   justify-content: center;
   width: 100%;
   max-width: 500px;
+  margin-top: 1rem;
 }
 
 .status-line {
@@ -124,6 +133,7 @@ button:disabled {
   margin-top: 2rem;
   padding-top: 1rem;
   opacity: 0.8;
+  font-size: 0.9rem;
 }
 
 /* Section styling */
@@ -131,6 +141,7 @@ button:disabled {
   text-align: center;
   margin-bottom: 0.5rem;
   opacity: 0.8;
+  font-size: 1.1rem;
 }
 
 .robot-display {
@@ -138,4 +149,22 @@ button:disabled {
   text-align: center;
   position: relative;
   display: inline-block;
+  padding: 1rem; /* Add space around the robot display */
+}
+
+/* Additional spacing for elements */
+pre {
+  margin: 0;
+  padding: 0.5rem;
+}
+
+button, .terminal-glow, .status-line {
+  font-size: 1rem;
+}
+
+/* Adjust spacing for smaller screens */
+@media (max-width: 600px) {
+  .terminal-grid {
+    grid-template-columns: 1fr;
+  }
 }
