@@ -35,14 +35,30 @@ interface Upgrade {
 
 // Define default upgrades for bots
 const defaultUpgrades: Upgrade[] = [
-  // ... (same as before)
   {
     name: 'Battery Boost',
     cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }],
     applied: false,
     effect: 'Increases energy gain from charging'
   },
-  // ... rest of default upgrades
+  {
+    name: 'Happy Circuits',
+    cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }],
+    applied: false,
+    effect: 'Reduces happiness loss from missions'
+  },
+  {
+    name: 'Advanced Sensors',
+    cost: [{ name: 'circuit', amount: 2 }, { name: 'magnets', amount: 2 }],
+    applied: false,
+    effect: 'Increases mission success rate'
+  },
+  {
+    name: 'Reinforced Chassis',
+    cost: [{ name: 'bolts', amount: 6 }, { name: 'wires', amount: 4 }],
+    applied: false,
+    effect: 'Reduces energy loss during missions'
+  }
 ];
 
 // Updated Pixel Art Arrays with varied colors
@@ -139,29 +155,168 @@ const RobotPet = () => {
   }, [currentBot?.id, currentBot?.isOnMission, currentBot?.missionTimeLeft]);
 
   const missions: Mission[] = [
-    // ... (same missions as before)
+    {
+      name: 'Scrap Yard Search',
+      energyCost: 20,
+      happinessCost: 10,
+      duration: 10,
+      requiredBatteryLevel: 30,
+      rewards: [
+        { name: 'bolts', amount: 2 },
+        { name: 'wires', amount: 1 }
+      ]
+    },
+    {
+      name: 'Factory Exploration',
+      energyCost: 40,
+      happinessCost: 20,
+      duration: 20,
+      requiredBatteryLevel: 50,
+      rewards: [
+        { name: 'magnets', amount: 2 },
+        { name: 'wires', amount: 2 },
+        { name: 'bolts', amount: 1 }
+      ]
+    },
+    {
+      name: 'Abandoned Warehouse',
+      energyCost: 30,
+      happinessCost: 15,
+      duration: 15,
+      requiredBatteryLevel: 40,
+      rewards: [
+        { name: 'wires', amount: 3 },
+        { name: 'bolts', amount: 1 },
+        { name: 'circuit', amount: 1 }
+      ]
+    },
+    {
+      name: 'Underground Lab',
+      energyCost: 50,
+      happinessCost: 25,
+      duration: 30,
+      requiredBatteryLevel: 60,
+      rewards: [
+        { name: 'magnets', amount: 4 },
+        { name: 'circuit', amount: 2 },
+        { name: 'wires', amount: 2 }
+      ]
+    },
+    {
+      name: 'Space Junk Salvage',
+      energyCost: 70,
+      happinessCost: 30,
+      duration: 40,
+      requiredBatteryLevel: 80,
+      rewards: [
+        { name: 'bolts', amount: 5 },
+        { name: 'magnets', amount: 3 },
+        { name: 'wires', amount: 3 },
+        { name: 'circuit', amount: 4 }
+      ]
+    }
   ];
 
   const getBotPixelData = () => currentBot.pixelData;
 
   const startMission = (mission: Mission) => {
-    // ... (same as before)
+    if (currentBot.energy < mission.requiredBatteryLevel) {
+      setLastInteraction('Not enough energy for this mission!');
+      return;
+    }
+    if (currentBot.isOnMission) {
+      setLastInteraction('Already on a mission!');
+      return;
+    }
+
+    const newEnergy = Math.max(0, currentBot.energy - mission.energyCost);
+    const happinessCost = currentBot.upgrades.find(u => u.name === 'Happy Circuits' && u.applied)
+      ? Math.floor(mission.happinessCost * 0.7)
+      : mission.happinessCost;
+    const newHappiness = Math.max(0, currentBot.happiness - happinessCost);
+
+    updateBotState(currentBot.id, {
+      isOnMission: true,
+      missionTimeLeft: mission.duration,
+      energy: newEnergy,
+      happiness: newHappiness
+    });
+
+    setLastInteraction(`Started mission: ${mission.name}`);
+
+    setTimeout(() => {
+      completeMission(mission);
+    }, mission.duration * 1000);
   };
 
   const completeMission = (mission: Mission) => {
-    // ... (same as before)
+    updateBotState(currentBot.id, {
+      isOnMission: false,
+      missionTimeLeft: null
+    });
+
+    setResources(prevResources => {
+      const newResources = [...prevResources];
+      mission.rewards.forEach(reward => {
+        const idx = newResources.findIndex(r => r.name === reward.name);
+        if (idx !== -1) {
+          newResources[idx].amount += reward.amount;
+        }
+      });
+      return newResources;
+    });
+
+    setLastInteraction(`Mission Complete: ${mission.name}! Collected resources!`);
   };
 
   const charge = () => {
-    // ... (same as before)
+    const chargeAmount = currentBot.upgrades.find(u => u.name === 'Battery Boost' && u.applied)
+      ? 30 : 20;
+    const newEnergy = Math.min(100, currentBot.energy + chargeAmount);
+
+    updateBotState(currentBot.id, { energy: newEnergy });
+    setLastInteraction('Charging... Battery replenished!');
   };
 
   const play = () => {
-    // ... (same as before)
+    if (currentBot.energy < 10) {
+      setLastInteraction('Robot is too tired to play...');
+      return;
+    }
+    const newEnergy = Math.max(0, currentBot.energy - 10);
+    const newHappiness = Math.min(100, currentBot.happiness + 15);
+
+    updateBotState(currentBot.id, { energy: newEnergy, happiness: newHappiness });
+    setLastInteraction('Playing with robot! It seems happy!');
   };
 
   const applyUpgrade = (upgrade: Upgrade) => {
-    // ... (same as before)
+    const canAfford = upgrade.cost.every(cost => {
+      const resource = resources.find(r => r.name === cost.name);
+      return resource && resource.amount >= cost.amount;
+    });
+
+    if (!canAfford) {
+      setLastInteraction('Not enough resources for this upgrade!');
+      return;
+    }
+
+    setResources(prevResources => {
+      const newResources = [...prevResources];
+      upgrade.cost.forEach(cost => {
+        const idx = newResources.findIndex(r => r.name === cost.name);
+        if (idx !== -1) newResources[idx].amount -= cost.amount;
+      });
+      return newResources;
+    });
+
+    updateBotState(currentBot.id, {
+      upgrades: currentBot.upgrades.map(u =>
+        u.name === upgrade.name ? { ...u, applied: true } : u
+      )
+    });
+
+    setLastInteraction(`Upgrade applied: ${upgrade.name}!`);
   };
 
   const buildBotCost: Resource[] = [
@@ -301,7 +456,6 @@ const RobotPet = () => {
 
           {/* Main Interface */}
           <div className="grid grid-cols-2 gap-6">
-            {/* Left Column */}
             <div className="space-y-6">
               {/* Commands */}
               <div>
@@ -352,7 +506,6 @@ const RobotPet = () => {
               </div>
             </div>
 
-            {/* Right Column */}
             <div className="space-y-6">
               {/* Missions */}
               <div>
@@ -393,7 +546,6 @@ const RobotPet = () => {
             </div>
           </div>
 
-          {/* Status Line */}
           <div className="text-xs text-[#4af626]/70 border-t border-[#4af626]/20 mt-6 pt-4 terminal-glow text-center">
             {'>>'} {lastInteraction || 'Awaiting command...'}{cursorVisible ? '_' : ' '}
           </div>
