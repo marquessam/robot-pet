@@ -234,7 +234,7 @@ const RobotPet = () => {
 
           {/* Status Line */}
           <div className="text-xs opacity-70 border-t border-green-500 pt-4">
-            > {lastInteraction || 'Awaiting command...'}{cursorVisible ? '_' : ' '}
+            {'>>'} {lastInteraction || 'Awaiting command...'}{cursorVisible ? '_' : ' '}
           </div>
         </div>
       </div>
