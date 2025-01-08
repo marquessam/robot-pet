@@ -158,8 +158,22 @@ pre {
   padding: 0.5rem;
 }
 
-button, .terminal-glow, .status-line {
+button, .terminal-glow, .status-line, select {
   font-size: 1rem;
+}
+
+/* Bot Selection Dropdown */
+select {
+  background-color: transparent;
+  border: 1px solid #4af626;
+  color: #4af626;
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+select:focus {
+  outline: none;
+  border-color: #fff;
 }
 
 /* Adjust spacing for smaller screens */
