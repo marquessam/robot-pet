@@ -91,6 +91,21 @@ const RobotPet = () => {
     }
   }, [isOnMission, missionTimeLeft])
 
+  // Mission timer effect for current bot
+  useEffect(() => {
+    if (!currentBot?.isOnMission) return;
+
+    const timer = setInterval(() => {
+      if (currentBot.missionTimeLeft !== null) {
+        updateBotState(currentBot.id, {
+          missionTimeLeft: Math.max(0, currentBot.missionTimeLeft - 1)
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [currentBot?.id, currentBot?.isOnMission]);
+  
   const missions: Mission[] = [
     {
       name: 'Scrap Yard Search',
