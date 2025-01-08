@@ -1,54 +1,74 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 
+interface Bot {
+  id: string;
+  name: string;
+  energy: number;
+  happiness: number;
+  upgrades: Upgrade[];
+  isOnMission: boolean;
+  missionTimeLeft: number | null;
+}
+
 interface Resource {
-  name: string
+  name: string;
   amount: number
 }
 
 interface Mission {
-  name: string
-  energyCost: number
-  happinessCost: number
-  duration: number
-  rewards: Resource[]
+  name: string;
+  energyCost: number;
+  happinessCost: number;
+  duration: number;
+  rewards: Resource[];
   requiredBatteryLevel: number
 }
 
 interface Upgrade {
-  name: string
-  cost: Resource[]
-  applied: boolean
+  name: string;
+  cost: Resource[];
+  applied: boolean;
   effect: string
 }
 
 const RobotPet = () => {
   const [cursorVisible, setCursorVisible] = useState(true)
-  const [energy, setEnergy] = useState(100)
-  const [happiness, setHappiness] = useState(100)
-  const [lastInteraction, setLastInteraction] = useState('')
-  const [isOnMission, setIsOnMission] = useState(false)
-  const [missionTimer, setMissionTimer] = useState<number | null>(null)
-  const [missionTimeLeft, setMissionTimeLeft] = useState<number | null>(null)
   const [resources, setResources] = useState<Resource[]>([
     { name: 'bolts', amount: 0 },
     { name: 'magnets', amount: 0 },
     { name: 'wires', amount: 0 }
   ])
-  const [upgrades, setUpgrades] = useState<Upgrade[]>([
-    {
-      name: 'Battery Boost',
-      cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }],
-      applied: false,
-      effect: 'Increases energy gain from charging'
-    },
-    {
-      name: 'Happy Circuits',
-      cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }],
-      applied: false,
-      effect: 'Reduces happiness loss from missions'
-    }
-  ])
+  
+  const [bots, setBots] = useState<Bot[]>([{
+    id: 'bot-1',
+    name: 'BOT-1',
+    energy: 100,
+    happiness: 100,
+    upgrades: [
+      {
+        name: 'Battery Boost',
+        cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }],
+        applied: false,
+        effect: 'Increases energy gain from charging'
+      },
+      {
+        name: 'Happy Circuits',
+        cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }],
+        applied: false,
+        effect: 'Reduces happiness loss from missions'
+      }
+    ],
+    isOnMission: false,
+    missionTimeLeft: null
+  }])
+
+  const [activeBot, setActiveBot] = useState<string>('bot-1')
+  const [lastInteraction, setLastInteraction] = useState('')
+  const [showBuildMenu, setShowBuildMenu] = useState(false)
+  const [newBotName, setNewBotName] = useState('')
+
+  const currentBot = bots.find(bot => bot.id === activeBot)!
 
   // Cursor blink effect
   useEffect(() => {
