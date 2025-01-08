@@ -35,30 +35,10 @@ interface Upgrade {
 
 // Define default upgrades for bots
 const defaultUpgrades: Upgrade[] = [
-  {
-    name: 'Battery Boost',
-    cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }],
-    applied: false,
-    effect: 'Increases energy gain from charging'
-  },
-  {
-    name: 'Happy Circuits',
-    cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }],
-    applied: false,
-    effect: 'Reduces happiness loss from missions'
-  },
-  {
-    name: 'Advanced Sensors',
-    cost: [{ name: 'circuit', amount: 2 }, { name: 'magnets', amount: 2 }],
-    applied: false,
-    effect: 'Increases mission success rate'
-  },
-  {
-    name: 'Reinforced Chassis',
-    cost: [{ name: 'bolts', amount: 6 }, { name: 'wires', amount: 4 }],
-    applied: false,
-    effect: 'Reduces energy loss during missions'
-  }
+  { name: 'Battery Boost', cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }], applied: false, effect: 'Increases energy gain from charging' },
+  { name: 'Happy Circuits', cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }], applied: false, effect: 'Reduces happiness loss from missions' },
+  { name: 'Advanced Sensors', cost: [{ name: 'circuit', amount: 2 }, { name: 'magnets', amount: 2 }], applied: false, effect: 'Increases mission success rate' },
+  { name: 'Reinforced Chassis', cost: [{ name: 'bolts', amount: 6 }, { name: 'wires', amount: 4 }], applied: false, effect: 'Reduces energy loss during missions' }
 ];
 
 const initialResources: Resource[] = [
@@ -76,6 +56,27 @@ const generateAsciiBot = (emoji: string): string => `
 ╭──────────╮
 │   ${emoji}     │
 │  ─────   │
+│ |=====|  │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`;
+
+// Define two ASCII art frames for mission animation
+const missionAsciiFrame1 = `
+╭──────────╮
+│  (>_<)   │
+│  [RUN]   │
+│ |=====|  │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`;
+
+const missionAsciiFrame2 = `
+╭──────────╮
+│  (•_•)   │
+│  [RUN]   │
 │ |=====|  │
 ╰──────────╯
 │  ║   ║   │
@@ -150,6 +151,19 @@ const RobotPet = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, [currentBot?.id, currentBot?.isOnMission, currentBot?.missionTimeLeft]);
+
+  // Effect to animate ASCII art when bot is on a mission
+  useEffect(() => {
+    if (currentBot.isOnMission) {
+      const frames = [missionAsciiFrame1, missionAsciiFrame2];
+      let index = 0;
+      const animInterval = setInterval(() => {
+        updateBotState(currentBot.id, { asciiArt: frames[index] });
+        index = (index + 1) % frames.length;
+      }, 500);
+      return () => clearInterval(animInterval);
+    }
+  }, [currentBot.isOnMission]);
 
   const missions: Mission[] = [
     {
@@ -234,7 +248,8 @@ const RobotPet = () => {
       isOnMission: true,
       missionTimeLeft: mission.duration,
       energy: newEnergy,
-      happiness: newHappiness
+      happiness: newHappiness,
+      asciiArt: generateAsciiBot("🏃")  // Change art to a running emoji when mission starts
     });
 
     setLastInteraction(`Started mission: ${mission.name}`);
@@ -247,7 +262,8 @@ const RobotPet = () => {
   const completeMission = (mission: Mission) => {
     updateBotState(currentBot.id, {
       isOnMission: false,
-      missionTimeLeft: null
+      missionTimeLeft: null,
+      asciiArt: generateAsciiBot("🤖")  // Revert to normal art after mission
     });
 
     setResources(prevResources => {
@@ -371,7 +387,7 @@ const RobotPet = () => {
             <div>ROBOPET v1.0.0 - TERMINAL MODE</div>
             <div>SYSTEM ACTIVE...</div>
           </div>
-
+          
           {/* Bot Switching Buttons */}
           <div className="mb-4 text-center">
             <span className="text-xs terminal-glow opacity-70 mr-2">
@@ -388,46 +404,36 @@ const RobotPet = () => {
               </button>
             ))}
           </div>
-
-          {/* Robot Display and Stats Readout Container */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* Bot Display Column */}
-            <div>
-              <div className="relative mb-4">
-                <pre className="text-3xl whitespace-pre leading-tight text-center terminal-glow">
-                  {currentBot.asciiArt}
-                </pre>
-                {currentBot.isOnMission && currentBot.missionTimeLeft !== null && (
-                  <div className="absolute top-0 right-0 text-xl terminal-glow animate-pulse">
-                    T-{currentBot.missionTimeLeft}s
-                  </div>
-                )}
-              </div>
+          
+          {/* Bot Display */}
+          <div className="mb-6 text-center">
+            <pre className="text-3xl whitespace-pre leading-tight terminal-glow">
+              {currentBot.asciiArt}
+            </pre>
+          </div>
+          
+          {/* Stats Readout */}
+          <div className="stats-readout border border-[#4af626]/30 p-4 rounded mb-6">
+            <h2 className="text-lg mb-2 terminal-glow">Bot Stats</h2>
+            <div className="mb-4">
+              <p><strong>Name:</strong> {currentBot.name}</p>
+              <p><strong>Energy:</strong> {currentBot.energy}%</p>
+              <p><strong>Happiness:</strong> {currentBot.happiness}%</p>
             </div>
-
-            {/* Stats Readout Column */}
-            <div className="stats-readout border border-[#4af626]/30 p-4 rounded">
-              <h2 className="text-lg mb-2 terminal-glow">Bot Stats</h2>
-              <div className="mb-4">
-                <p><strong>Name:</strong> {currentBot.name}</p>
-                <p><strong>Energy:</strong> {currentBot.energy}%</p>
-                <p><strong>Happiness:</strong> {currentBot.happiness}%</p>
-              </div>
-              <h3 className="text-md mb-2 terminal-glow">Upgrades Installed:</h3>
-              <ul className="list-disc list-inside">
-                {currentBot.upgrades.map((upgrade) => (
-                  <li key={upgrade.name} className="mb-1">
-                    <span className={`${upgrade.applied ? 'text-green-400' : 'text-red-400'}`}>
-                      {upgrade.name} {upgrade.applied ? '(Applied)' : '(Not Applied)'}
-                    </span>
-                    <p className="text-xs opacity-70 ml-4">{upgrade.effect}</p>
-                    <p className="text-xs opacity-70 ml-4">
-                      <strong>Cost:</strong> {upgrade.cost.map(c => `${c.amount} ${c.name}`).join(', ')}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <h3 className="text-md mb-2 terminal-glow">Upgrades Installed:</h3>
+            <ul className="list-disc list-inside">
+              {currentBot.upgrades.map((upgrade) => (
+                <li key={upgrade.name} className="mb-1">
+                  <span className={`${upgrade.applied ? 'text-green-400' : 'text-red-400'}`}>
+                    {upgrade.name} {upgrade.applied ? '(Applied)' : '(Not Applied)'}
+                  </span>
+                  <p className="text-xs opacity-70 ml-4">{upgrade.effect}</p>
+                  <p className="text-xs opacity-70 ml-4">
+                    <strong>Cost:</strong> {upgrade.cost.map(c => `${c.amount} ${c.name}`).join(', ')}
+                  </p>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* Status Display */}
