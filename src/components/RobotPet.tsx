@@ -14,7 +14,7 @@ interface Bot {
 
 interface Resource {
   name: string;
-  amount: number
+  amount: number;
 }
 
 interface Mission {
@@ -23,85 +23,152 @@ interface Mission {
   happinessCost: number;
   duration: number;
   rewards: Resource[];
-  requiredBatteryLevel: number
+  requiredBatteryLevel: number;
 }
 
 interface Upgrade {
   name: string;
   cost: Resource[];
   applied: boolean;
-  effect: string
+  effect: string;
 }
 
+// Define default upgrades for bots
+const defaultUpgrades: Upgrade[] = [
+  {
+    name: 'Battery Boost',
+    cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }],
+    applied: false,
+    effect: 'Increases energy gain from charging'
+  },
+  {
+    name: 'Happy Circuits',
+    cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }],
+    applied: false,
+    effect: 'Reduces happiness loss from missions'
+  },
+  {
+    name: 'Advanced Sensors',
+    cost: [{ name: 'circuit', amount: 2 }, { name: 'magnets', amount: 2 }],
+    applied: false,
+    effect: 'Increases mission success rate'
+  },
+  {
+    name: 'Reinforced Chassis',
+    cost: [{ name: 'bolts', amount: 6 }, { name: 'wires', amount: 4 }],
+    applied: false,
+    effect: 'Reduces energy loss during missions'
+  }
+];
+
+// Define several non-anthropomorphic robot styles
+const botStyles = [
+  `
+╭──────────╮
+│  [===]   │
+│  |   |   │
+│  |___|   │
+╰──────────╯
+  `,
+  `
+╭──────────╮
+│  <===>   │
+│  |   |   │
+│  |===|   │
+╰──────────╯
+  `,
+  `
+╭──────────╮
+│  .---.   │
+│ |     |  │
+│ |     |  │
+╰──────────╯
+  `,
+  `
+╭──────────╮
+│  [***]   │
+│   | |    │
+│   |_|    │
+╰──────────╯
+  `
+];
+
+const initialResources: Resource[] = [
+  { name: 'bolts', amount: 0 },
+  { name: 'magnets', amount: 0 },
+  { name: 'wires', amount: 0 },
+  { name: 'circuit', amount: 0 }
+];
+
 const RobotPet = () => {
-  const [cursorVisible, setCursorVisible] = useState(true)
-  const [resources, setResources] = useState<Resource[]>([
-    { name: 'bolts', amount: 0 },
-    { name: 'magnets', amount: 0 },
-    { name: 'wires', amount: 0 }
-  ])
+  const [cursorVisible, setCursorVisible] = useState(true);
+  const [resources, setResources] = useState<Resource[]>(initialResources);
   
   const [bots, setBots] = useState<Bot[]>([{
     id: 'bot-1',
     name: 'BOT-1',
     energy: 100,
     happiness: 100,
-    upgrades: [
-      {
-        name: 'Battery Boost',
-        cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }],
-        applied: false,
-        effect: 'Increases energy gain from charging'
-      },
-      {
-        name: 'Happy Circuits',
-        cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }],
-        applied: false,
-        effect: 'Reduces happiness loss from missions'
-      }
-    ],
+    upgrades: defaultUpgrades.map(upg => ({ ...upg })),
     isOnMission: false,
     missionTimeLeft: null,
     asciiArt: `
 ╭──────────╮
-│  (^_^ )  │
-│  ─────   │
-│ |=====|  │
+│  [===]   │
+│  |   |   │
+│  |___|   │
 ╰──────────╯
-│  ║   ║   │
-╰──╨───╨───╯
-`
-  }])
+    `
+  }]);
 
-  const [activeBot, setActiveBot] = useState<string>('bot-1')
-  const [lastInteraction, setLastInteraction] = useState('')
+  const [activeBot, setActiveBot] = useState<string>('bot-1');
+  const [lastInteraction, setLastInteraction] = useState('');
 
-  const currentBot = bots.find(bot => bot.id === activeBot)!
+  const currentBot = bots.find(bot => bot.id === activeBot)!;
 
   // Helper to update bot state
   const updateBotState = (botId: string, updates: Partial<Bot>) => {
     setBots(prevBots =>
-      prevBots.map(bot => {
-        if (bot.id === botId) {
-          return { ...bot, ...updates }
-        }
-        return bot
-      })
-    )
-  }
+      prevBots.map(bot => bot.id === botId ? { ...bot, ...updates } : bot)
+    );
+  };
 
   // Cursor blink effect
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCursorVisible(v => !v)
-    }, 530)
-    return () => clearInterval(interval)
-  }, [])
+    const interval = setInterval(() => setCursorVisible(v => !v), 530);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Monitor current bot energy for death condition
+  useEffect(() => {
+    if (currentBot && currentBot.energy <= 0) {
+      setLastInteraction(`${currentBot.name} has died.`);
+      const salvage = [
+        { name: 'bolts', amount: 5 },
+        { name: 'magnets', amount: 2 },
+        { name: 'wires', amount: 2 },
+        { name: 'circuit', amount: 1 }
+      ];
+      setResources(prev => {
+        const newResources = [...prev];
+        salvage.forEach(s => {
+          const idx = newResources.findIndex(r => r.name === s.name);
+          if (idx !== -1) newResources[idx].amount += s.amount;
+        });
+        return newResources;
+      });
+      setBots(prevBots => {
+        const updatedBots = prevBots.filter(bot => bot.id !== currentBot.id);
+        if (updatedBots.length > 0) setActiveBot(updatedBots[0].id);
+        else setActiveBot('');
+        return updatedBots;
+      });
+    }
+  }, [currentBot?.energy]);
 
   // Mission timer effect for current bot
   useEffect(() => {
     if (!currentBot?.isOnMission) return;
-
     const timer = setInterval(() => {
       if (currentBot.missionTimeLeft !== null) {
         updateBotState(currentBot.id, {
@@ -109,7 +176,6 @@ const RobotPet = () => {
         });
       }
     }, 1000);
-
     return () => clearInterval(timer);
   }, [currentBot?.id, currentBot?.isOnMission, currentBot?.missionTimeLeft]);
 
@@ -136,29 +202,45 @@ const RobotPet = () => {
         { name: 'wires', amount: 2 },
         { name: 'bolts', amount: 1 }
       ]
+    },
+    {
+      name: 'Abandoned Warehouse',
+      energyCost: 30,
+      happinessCost: 15,
+      duration: 15,
+      requiredBatteryLevel: 40,
+      rewards: [
+        { name: 'wires', amount: 3 },
+        { name: 'bolts', amount: 1 },
+        { name: 'circuit', amount: 1 }
+      ]
+    },
+    {
+      name: 'Underground Lab',
+      energyCost: 50,
+      happinessCost: 25,
+      duration: 30,
+      requiredBatteryLevel: 60,
+      rewards: [
+        { name: 'magnets', amount: 4 },
+        { name: 'circuit', amount: 2 },
+        { name: 'wires', amount: 2 }
+      ]
+    },
+    {
+      name: 'Space Junk Salvage',
+      energyCost: 70,
+      happinessCost: 30,
+      duration: 40,
+      requiredBatteryLevel: 80,
+      rewards: [
+        { name: 'bolts', amount: 5 },
+        { name: 'magnets', amount: 3 },
+        { name: 'wires', amount: 3 },
+        { name: 'circuit', amount: 4 }
+      ]
     }
-  ]
-
-  // ASCII Art Definitions
-  const robotNormal = `
-╭──────────╮
-│  (^_^ )  │
-│  ─────   │
-│ |=====|  │
-╰──────────╯
-│  ║   ║   │
-╰──╨───╨───╯
-`
-
-  const robotHappy = `
-╭──────────╮
-│  (^o^)   │
-│  ─────   │
-│ |=====|  │
-╰──────────╯
-│  ║   ║   │
-╰──╨───╨───╯
-`
+  ];
 
   const robotTired = `
 ╭──────────╮
@@ -168,7 +250,27 @@ const RobotPet = () => {
 ╰──────────╯
 │  ║   ║   │
 ╰──╨───╨───╯
-`
+`;
+
+  const robotHappy = `
+╭──────────╮
+│  (^o^)   │
+│  ─────   │
+│ |=====|  │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`;
+
+  const robotNormal = `
+╭──────────╮
+│  [===]   │
+│  |   |   │
+│  |___|   │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`;
 
   const robotMission = `
 ╭──────────╮
@@ -178,40 +280,40 @@ const RobotPet = () => {
 ╰──────────╯
 │  ║   ║   │
 ╰──╨───╨───╯
-`
+`;
 
-  const robotNewBot = `
+  const robotEmpty = `
 ╭──────────╮
-│  (^_^)   │
-│  ─────   │
-│ |=====|  │
+│          │
+│  (Gone)  │
+│          │
 ╰──────────╯
-│  ║   ║   │
-╰──╨───╨───╯
-`
+│          │
+╰──────────╯
+`;
 
   const getRobotState = () => {
-    if (currentBot.isOnMission) return currentBot.asciiArt
-    if (currentBot.energy < 30) return robotTired
-    if (currentBot.happiness > 80) return robotHappy
-    return robotNormal
-  }
+    if (currentBot.isOnMission) return robotEmpty;
+    if (currentBot.energy < 30) return robotTired;
+    if (currentBot.happiness > 80) return robotHappy;
+    return robotNormal;
+  };
 
   const startMission = (mission: Mission) => {
     if (currentBot.energy < mission.requiredBatteryLevel) {
-      setLastInteraction('Not enough energy for this mission!')
-      return
+      setLastInteraction('Not enough energy for this mission!');
+      return;
     }
     if (currentBot.isOnMission) {
-      setLastInteraction('Already on a mission!')
-      return
+      setLastInteraction('Already on a mission!');
+      return;
     }
 
-    const newEnergy = Math.max(0, currentBot.energy - mission.energyCost)
-    const happinessCost = currentBot.upgrades.find(u => u.name === 'Happy Circuits' && u.applied) 
-      ? Math.floor(mission.happinessCost * 0.7) 
-      : mission.happinessCost
-    const newHappiness = Math.max(0, currentBot.happiness - happinessCost)
+    const newEnergy = Math.max(0, currentBot.energy - mission.energyCost);
+    const happinessCost = currentBot.upgrades.find(u => u.name === 'Happy Circuits' && u.applied)
+      ? Math.floor(mission.happinessCost * 0.7)
+      : mission.happinessCost;
+    const newHappiness = Math.max(0, currentBot.happiness - happinessCost);
 
     updateBotState(currentBot.id, {
       isOnMission: true,
@@ -219,156 +321,131 @@ const RobotPet = () => {
       energy: newEnergy,
       happiness: newHappiness,
       asciiArt: robotMission
-    })
+    });
 
-    setLastInteraction(`Started mission: ${mission.name}`)
+    setLastInteraction(`Started mission: ${mission.name}`);
 
     setTimeout(() => {
-      completeMission(mission)
-    }, mission.duration * 1000)
-  }
+      completeMission(mission);
+    }, mission.duration * 1000);
+  };
 
   const completeMission = (mission: Mission) => {
     updateBotState(currentBot.id, {
       isOnMission: false,
       missionTimeLeft: null,
-      asciiArt: getRobotState() // Reset to appropriate state
-    })
-    
-    setResources(prevResources => {
-      const newResources = [...prevResources]
-      mission.rewards.forEach(reward => {
-        const idx = newResources.findIndex(r => r.name === reward.name)
-        if (idx !== -1) {
-          newResources[idx].amount += reward.amount
-        }
-      })
-      return newResources
-    })
+      asciiArt: getRobotState()
+    });
 
-    setLastInteraction(`Mission Complete: ${mission.name}! Collected resources!`)
-  }
+    setResources(prevResources => {
+      const newResources = [...prevResources];
+      mission.rewards.forEach(reward => {
+        const idx = newResources.findIndex(r => r.name === reward.name);
+        if (idx !== -1) {
+          newResources[idx].amount += reward.amount;
+        }
+      });
+      return newResources;
+    });
+
+    setLastInteraction(`Mission Complete: ${mission.name}! Collected resources!`);
+  };
 
   const charge = () => {
-    const chargeAmount = currentBot.upgrades.find(u => u.name === 'Battery Boost' && u.applied) ? 30 : 20
-    const newEnergy = Math.min(100, currentBot.energy + chargeAmount)
+    const chargeAmount = currentBot.upgrades.find(u => u.name === 'Battery Boost' && u.applied)
+      ? 30 : 20;
+    const newEnergy = Math.min(100, currentBot.energy + chargeAmount);
 
-    updateBotState(currentBot.id, {
-      energy: newEnergy
-    })
-
-    setLastInteraction('Charging... Battery replenished!')
-  }
+    updateBotState(currentBot.id, { energy: newEnergy });
+    setLastInteraction('Charging... Battery replenished!');
+  };
 
   const play = () => {
     if (currentBot.energy < 10) {
-      setLastInteraction('Robot is too tired to play...')
-      return
+      setLastInteraction('Robot is too tired to play...');
+      return;
     }
+    const newEnergy = Math.max(0, currentBot.energy - 10);
+    const newHappiness = Math.min(100, currentBot.happiness + 15);
 
-    const newEnergy = Math.max(0, currentBot.energy - 10)
-    const newHappiness = Math.min(100, currentBot.happiness + 15)
-
-    updateBotState(currentBot.id, {
-      energy: newEnergy,
-      happiness: newHappiness
-    })
-
-    setLastInteraction('Playing with robot! It seems happy!')
-  }
+    updateBotState(currentBot.id, { energy: newEnergy, happiness: newHappiness });
+    setLastInteraction('Playing with robot! It seems happy!');
+  };
 
   const applyUpgrade = (upgrade: Upgrade) => {
     const canAfford = upgrade.cost.every(cost => {
-      const resource = resources.find(r => r.name === cost.name)
-      return resource && resource.amount >= cost.amount
-    })
+      const resource = resources.find(r => r.name === cost.name);
+      return resource && resource.amount >= cost.amount;
+    });
 
     if (!canAfford) {
-      setLastInteraction('Not enough resources for this upgrade!')
-      return
+      setLastInteraction('Not enough resources for this upgrade!');
+      return;
     }
 
     setResources(prevResources => {
-      const newResources = [...prevResources]
+      const newResources = [...prevResources];
       upgrade.cost.forEach(cost => {
-        const idx = newResources.findIndex(r => r.name === cost.name)
-        if (idx !== -1) {
-          newResources[idx].amount -= cost.amount
-        }
-      })
-      return newResources
-    })
+        const idx = newResources.findIndex(r => r.name === cost.name);
+        if (idx !== -1) newResources[idx].amount -= cost.amount;
+      });
+      return newResources;
+    });
 
-    // Update upgrades for currentBot
     updateBotState(currentBot.id, {
-      upgrades: currentBot.upgrades.map(u => 
+      upgrades: currentBot.upgrades.map(u =>
         u.name === upgrade.name ? { ...u, applied: true } : u
       )
-    })
+    });
 
-    setLastInteraction(`Upgrade applied: ${upgrade.name}!`)
-  }
+    setLastInteraction(`Upgrade applied: ${upgrade.name}!`);
+  };
 
   // Build Bot Functionality
   const buildBotCost: Resource[] = [
     { name: 'bolts', amount: 10 },
     { name: 'magnets', amount: 5 },
     { name: 'wires', amount: 5 }
-  ]
+  ];
 
   const canBuildBot = buildBotCost.every(cost => {
-    const resource = resources.find(r => r.name === cost.name)
-    return resource && resource.amount >= cost.amount
-  })
+    const resource = resources.find(r => r.name === cost.name);
+    return resource && resource.amount >= cost.amount;
+  });
 
   const buildBot = () => {
     if (!canBuildBot) {
-      setLastInteraction('Not enough resources to build a new bot!')
-      return
+      setLastInteraction('Not enough resources to build a new bot!');
+      return;
     }
 
-    // Deduct resources
     setResources(prevResources => {
-      const newResources = [...prevResources]
+      const newResources = [...prevResources];
       buildBotCost.forEach(cost => {
-        const idx = newResources.findIndex(r => r.name === cost.name)
-        if (idx !== -1) {
-          newResources[idx].amount -= cost.amount
-        }
-      })
-      return newResources
-    })
+        const idx = newResources.findIndex(r => r.name === cost.name);
+        if (idx !== -1) newResources[idx].amount -= cost.amount;
+      });
+      return newResources;
+    });
 
-    // Create new bot
-    const newBotId = `bot-${bots.length + 1}`
+    const newBotId = `bot-${bots.length + 1}`;
+    const randomStyle = botStyles[Math.floor(Math.random() * botStyles.length)];
+
     const newBot: Bot = {
       id: newBotId,
       name: `BOT-${bots.length + 1}`,
       energy: 100,
       happiness: 100,
-      upgrades: [
-        {
-          name: 'Battery Boost',
-          cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }],
-          applied: false,
-          effect: 'Increases energy gain from charging'
-        },
-        {
-          name: 'Happy Circuits',
-          cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }],
-          applied: false,
-          effect: 'Reduces happiness loss from missions'
-        }
-      ],
+      upgrades: defaultUpgrades.map(upg => ({ ...upg })),
       isOnMission: false,
       missionTimeLeft: null,
-      asciiArt: robotNewBot // Assign different ASCII art
-    }
+      asciiArt: randomStyle
+    };
 
-    setBots(prevBots => [...prevBots, newBot])
-    setActiveBot(newBotId)
-    setLastInteraction(`New bot built: ${newBot.name}!`)
-  }
+    setBots(prevBots => [...prevBots, newBot]);
+    setActiveBot(newBotId);
+    setLastInteraction(`New bot built: ${newBot.name}!`);
+  };
 
   return (
     <div className="terminal-container">
@@ -520,7 +597,7 @@ const RobotPet = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RobotPet
+export default RobotPet;
