@@ -19,10 +19,10 @@ body {
   padding: 1rem;
 }
 
-/* Increased width for side-by-side columns */
+/* Increased width for expanded layout */
 .terminal-container {
   width: 90%;
-  max-width: 1200px;  /* Increased from 800px to 1200px */
+  max-width: 1200px;  /* Increased to allow 2x2 grid space */
   margin: 0 auto;
   padding: 1rem;
   animation: fadeIn 0.5s ease-in;
@@ -108,16 +108,6 @@ button:disabled {
   font-weight: bold;
 }
 
-/* Layout for grid items (if used elsewhere) */
-.terminal-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
 /* Status elements */
 .status-display {
   display: inline-flex;
@@ -183,7 +173,6 @@ select {
   font-size: 1rem;
 }
 
-/* Bot Selection Dropdown (if used) */
 select {
   background-color: transparent;
   border: 1px solid #4af626;
@@ -197,14 +186,12 @@ select:focus {
   border-color: #fff;
 }
 
-/* Adjust spacing for smaller screens */
+/* Responsive adjustments */
 @media (max-width: 600px) {
-  .terminal-grid {
-    grid-template-columns: 1fr;
-  }
+  /* For smaller screens, adjust layout if necessary */
 }
 
-/* Pixel Art Styles (preserved for potential future use) */
+/* Pixel Art Styles (preserved) */
 .pixel-art-container {
   display: inline-block;
 }
@@ -214,6 +201,6 @@ select:focus {
 }
 
 .pixel {
-  width: 10px;      /* Adjust pixel size as desired */
+  width: 10px;
   height: 10px;
 }
