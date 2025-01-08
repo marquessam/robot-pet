@@ -69,9 +69,12 @@ const initialResources: Resource[] = [
 
 const botEmojis = ["🤖", "🐱", "🐶", "🦊", "🐻‍❄️"];
 
-const generateAsciiBot = (emoji: string): string => `
+const normalFace = "[ o--o ]";
+const blinkFace = "[ >--< ]";
+
+const generateAsciiBot = (face: string): string => `
 ╭──────────╮
-│   ${emoji}     │
+│   ${face}    │
 │  ─────   │
 │ |=====|  │
 ╰──────────╯
@@ -82,7 +85,7 @@ const generateAsciiBot = (emoji: string): string => `
 const RobotPet = () => {
   const [cursorVisible, setCursorVisible] = useState(true);
   const [resources, setResources] = useState<Resource[]>(initialResources);
-
+  
   const [bots, setBots] = useState<Bot[]>([{
     id: 'bot-1',
     name: 'SM-33',
@@ -91,7 +94,7 @@ const RobotPet = () => {
     upgrades: defaultUpgrades.map(upg => ({ ...upg })),
     isOnMission: false,
     missionTimeLeft: null,
-    asciiArt: generateAsciiBot("🤖")
+    asciiArt: generateAsciiBot(normalFace)
   }]);
 
   const [activeBot, setActiveBot] = useState<string>('bot-1');
@@ -109,6 +112,19 @@ const RobotPet = () => {
     const interval = setInterval(() => setCursorVisible(v => !v), 530);
     return () => clearInterval(interval);
   }, []);
+
+  // Idle blinking animation
+  useEffect(() => {
+    if (!currentBot.isOnMission) {
+      const blinkInterval = setInterval(() => {
+        updateBotState(currentBot.id, { asciiArt: generateAsciiBot(blinkFace) });
+        setTimeout(() => {
+          updateBotState(currentBot.id, { asciiArt: generateAsciiBot(normalFace) });
+        }, 200);
+      }, 3000);
+      return () => clearInterval(blinkInterval);
+    }
+  }, [currentBot.isOnMission, currentBot.id]);
 
   useEffect(() => {
     if (currentBot && currentBot.energy <= 0) {
@@ -232,7 +248,7 @@ const RobotPet = () => {
       missionTimeLeft: mission.duration,
       energy: newEnergy,
       happiness: newHappiness,
-      asciiArt: generateAsciiBot("🏃")
+      asciiArt: "← Leaving..."
     });
 
     setLastInteraction(`Started mission: ${mission.name}`);
@@ -246,7 +262,7 @@ const RobotPet = () => {
     updateBotState(currentBot.id, {
       isOnMission: false,
       missionTimeLeft: null,
-      asciiArt: generateAsciiBot("🤖")
+      asciiArt: generateAsciiBot(normalFace)
     });
 
     setResources(prevResources => {
@@ -373,9 +389,7 @@ const RobotPet = () => {
 
           {/* Bot Switching Buttons */}
           <div className="mb-4 text-center">
-            <span className="text-xs terminal-glow opacity-70 mr-2">
-              {'>>'} SWITCH BOT:
-            </span>
+            <span className="text-xs terminal-glow opacity-70 mr-2">{'>>'} SWITCH BOT:</span>
             {bots.map(bot => (
               <button
                 key={bot.id}
@@ -407,15 +421,15 @@ const RobotPet = () => {
               <h2 className="text-lg mb-2 terminal-glow">Bot Stats</h2>
               <div className="mb-4">
                 <p><strong>Name:</strong> {currentBot.name}</p>
-                <p><strong>Energy:</strong> {currentBot.energy}%</p>
-                <p><strong>Happiness:</strong> {currentBot.happiness}%</p>
+                <p><strong>Energy:</strong> ⚡ {currentBot.energy}%</p>
+                <p><strong>Happiness:</strong> ❤️ {currentBot.happiness}%</p>
               </div>
               <h3 className="text-md mb-2 terminal-glow">Upgrades Installed:</h3>
               <ul className="list-disc list-inside">
                 {currentBot.upgrades.filter(u => u.applied).length === 0 ? (
                   <li className="mb-1 text-gray-500">No upgrades installed.</li>
                 ) : (
-                  currentBot.upgrades.map((upgrade) => 
+                  currentBot.upgrades.map(upgrade => 
                     upgrade.applied && (
                       <li key={upgrade.name} className="mb-1">
                         <span className="text-green-400">
