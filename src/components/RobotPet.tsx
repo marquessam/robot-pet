@@ -34,30 +34,10 @@ interface Upgrade {
 }
 
 const defaultUpgrades: Upgrade[] = [
-  {
-    name: 'Battery Boost',
-    cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }],
-    applied: false,
-    effect: 'Increases energy gain from charging'
-  },
-  {
-    name: 'Happy Circuits',
-    cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }],
-    applied: false,
-    effect: 'Reduces happiness loss from missions'
-  },
-  {
-    name: 'Advanced Sensors',
-    cost: [{ name: 'circuit', amount: 2 }, { name: 'magnets', amount: 2 }],
-    applied: false,
-    effect: 'Increases mission success rate'
-  },
-  {
-    name: 'Reinforced Chassis',
-    cost: [{ name: 'bolts', amount: 6 }, { name: 'wires', amount: 4 }],
-    applied: false,
-    effect: 'Reduces energy loss during missions'
-  }
+  { name: 'Battery Boost', cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }], applied: false, effect: 'Increases energy gain from charging' },
+  { name: 'Happy Circuits', cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }], applied: false, effect: 'Reduces happiness loss from missions' },
+  { name: 'Advanced Sensors', cost: [{ name: 'circuit', amount: 2 }, { name: 'magnets', amount: 2 }], applied: false, effect: 'Increases mission success rate' },
+  { name: 'Reinforced Chassis', cost: [{ name: 'bolts', amount: 6 }, { name: 'wires', amount: 4 }], applied: false, effect: 'Reduces energy loss during missions' }
 ];
 
 const initialResources: Resource[] = [
@@ -71,6 +51,10 @@ const botEmojis = ["🤖", "🐱", "🐶", "🦊", "🐻‍❄️"];
 
 const normalFace = "[ o--o ]";
 const blinkFace = "[ >--< ]";
+const happyFace1 = "[^--^]";
+const happyFace2 = "[ >--< ]";
+const angryFace1 = "[.\\--/.]";
+const angryFace2 = "[./--\\.]";
 
 const generateAsciiBot = (face: string): string => `
 ╭──────────╮
@@ -85,7 +69,7 @@ const generateAsciiBot = (face: string): string => `
 const RobotPet = () => {
   const [cursorVisible, setCursorVisible] = useState(true);
   const [resources, setResources] = useState<Resource[]>(initialResources);
-  
+
   const [bots, setBots] = useState<Bot[]>([{
     id: 'bot-1',
     name: 'SM-33',
@@ -113,18 +97,20 @@ const RobotPet = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Idle blinking animation
+  // Idle blinking and mood animations
   useEffect(() => {
     if (!currentBot.isOnMission) {
+      let frames = [blinkFace, normalFace]; // default idle blinking
+      if (currentBot.happiness > 80) frames = [happyFace1, happyFace2];
+      else if (currentBot.happiness < 20) frames = [angryFace1, angryFace2];
+      let index = 0;
       const blinkInterval = setInterval(() => {
-        updateBotState(currentBot.id, { asciiArt: generateAsciiBot(blinkFace) });
-        setTimeout(() => {
-          updateBotState(currentBot.id, { asciiArt: generateAsciiBot(normalFace) });
-        }, 200);
-      }, 3000);
+        updateBotState(currentBot.id, { asciiArt: generateAsciiBot(frames[index]) });
+        index = (index + 1) % frames.length;
+      }, 1000);
       return () => clearInterval(blinkInterval);
     }
-  }, [currentBot.isOnMission, currentBot.id]);
+  }, [currentBot.isOnMission, currentBot.happiness, currentBot.id]);
 
   useEffect(() => {
     if (currentBot && currentBot.energy <= 0) {
@@ -171,10 +157,7 @@ const RobotPet = () => {
       happinessCost: 10,
       duration: 10,
       requiredBatteryLevel: 30,
-      rewards: [
-        { name: 'bolts', amount: 2 },
-        { name: 'wires', amount: 1 }
-      ]
+      rewards: [{ name: 'bolts', amount: 2 }, { name: 'wires', amount: 1 }]
     },
     {
       name: 'Factory Exploration',
@@ -182,11 +165,7 @@ const RobotPet = () => {
       happinessCost: 20,
       duration: 20,
       requiredBatteryLevel: 50,
-      rewards: [
-        { name: 'magnets', amount: 2 },
-        { name: 'wires', amount: 2 },
-        { name: 'bolts', amount: 1 }
-      ]
+      rewards: [{ name: 'magnets', amount: 2 }, { name: 'wires', amount: 2 }, { name: 'bolts', amount: 1 }]
     },
     {
       name: 'Abandoned Warehouse',
@@ -194,11 +173,7 @@ const RobotPet = () => {
       happinessCost: 15,
       duration: 15,
       requiredBatteryLevel: 40,
-      rewards: [
-        { name: 'wires', amount: 3 },
-        { name: 'bolts', amount: 1 },
-        { name: 'circuit', amount: 1 }
-      ]
+      rewards: [{ name: 'wires', amount: 3 }, { name: 'bolts', amount: 1 }, { name: 'circuit', amount: 1 }]
     },
     {
       name: 'Underground Lab',
@@ -206,11 +181,7 @@ const RobotPet = () => {
       happinessCost: 25,
       duration: 30,
       requiredBatteryLevel: 60,
-      rewards: [
-        { name: 'magnets', amount: 4 },
-        { name: 'circuit', amount: 2 },
-        { name: 'wires', amount: 2 }
-      ]
+      rewards: [{ name: 'magnets', amount: 4 }, { name: 'circuit', amount: 2 }, { name: 'wires', amount: 2 }]
     },
     {
       name: 'Space Junk Salvage',
@@ -218,12 +189,7 @@ const RobotPet = () => {
       happinessCost: 30,
       duration: 40,
       requiredBatteryLevel: 80,
-      rewards: [
-        { name: 'bolts', amount: 5 },
-        { name: 'magnets', amount: 3 },
-        { name: 'wires', amount: 3 },
-        { name: 'circuit', amount: 4 }
-      ]
+      rewards: [{ name: 'bolts', amount: 5 }, { name: 'magnets', amount: 3 }, { name: 'wires', amount: 3 }, { name: 'circuit', amount: 4 }]
     }
   ];
 
@@ -389,7 +355,9 @@ const RobotPet = () => {
 
           {/* Bot Switching Buttons */}
           <div className="mb-4 text-center">
-            <span className="text-xs terminal-glow opacity-70 mr-2">{'>>'} SWITCH BOT:</span>
+            <span className="text-xs terminal-glow opacity-70 mr-2">
+              {'>>'} SWITCH BOT:
+            </span>
             {bots.map(bot => (
               <button
                 key={bot.id}
@@ -403,7 +371,7 @@ const RobotPet = () => {
           </div>
 
           {/* 2x2 Grid Layout */}
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-6 w-full">
             {/* Top Left: Bot Display */}
             <div className="mb-6 text-center">
               <pre className="text-3xl whitespace-pre leading-tight terminal-glow">
@@ -491,4 +459,3 @@ const RobotPet = () => {
 };
 
 export default RobotPet;
-
