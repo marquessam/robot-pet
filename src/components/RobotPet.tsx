@@ -82,7 +82,7 @@ const generateAsciiBot = (emoji: string): string => `
 const RobotPet = () => {
   const [cursorVisible, setCursorVisible] = useState(true);
   const [resources, setResources] = useState<Resource[]>(initialResources);
-  
+
   const [bots, setBots] = useState<Bot[]>([{
     id: 'bot-1',
     name: 'SM-33',
@@ -93,12 +93,12 @@ const RobotPet = () => {
     missionTimeLeft: null,
     asciiArt: generateAsciiBot("🤖")
   }]);
-  
+
   const [activeBot, setActiveBot] = useState<string>('bot-1');
   const [lastInteraction, setLastInteraction] = useState('');
 
   const currentBot = bots.find(bot => bot.id === activeBot)!;
-  
+
   const updateBotState = (botId: string, updates: Partial<Bot>) => {
     setBots(prevBots =>
       prevBots.map(bot => bot.id === botId ? { ...bot, ...updates } : bot)
@@ -149,7 +149,6 @@ const RobotPet = () => {
   }, [currentBot?.id, currentBot?.isOnMission, currentBot?.missionTimeLeft]);
 
   const missions: Mission[] = [
-    // ... define missions as before ...
     {
       name: 'Scrap Yard Search',
       energyCost: 20,
@@ -161,7 +160,55 @@ const RobotPet = () => {
         { name: 'wires', amount: 1 }
       ]
     },
-    // Add other missions accordingly...
+    {
+      name: 'Factory Exploration',
+      energyCost: 40,
+      happinessCost: 20,
+      duration: 20,
+      requiredBatteryLevel: 50,
+      rewards: [
+        { name: 'magnets', amount: 2 },
+        { name: 'wires', amount: 2 },
+        { name: 'bolts', amount: 1 }
+      ]
+    },
+    {
+      name: 'Abandoned Warehouse',
+      energyCost: 30,
+      happinessCost: 15,
+      duration: 15,
+      requiredBatteryLevel: 40,
+      rewards: [
+        { name: 'wires', amount: 3 },
+        { name: 'bolts', amount: 1 },
+        { name: 'circuit', amount: 1 }
+      ]
+    },
+    {
+      name: 'Underground Lab',
+      energyCost: 50,
+      happinessCost: 25,
+      duration: 30,
+      requiredBatteryLevel: 60,
+      rewards: [
+        { name: 'magnets', amount: 4 },
+        { name: 'circuit', amount: 2 },
+        { name: 'wires', amount: 2 }
+      ]
+    },
+    {
+      name: 'Space Junk Salvage',
+      energyCost: 70,
+      happinessCost: 30,
+      duration: 40,
+      requiredBatteryLevel: 80,
+      rewards: [
+        { name: 'bolts', amount: 5 },
+        { name: 'magnets', amount: 3 },
+        { name: 'wires', amount: 3 },
+        { name: 'circuit', amount: 4 }
+      ]
+    }
   ];
 
   const startMission = (mission: Mission) => {
@@ -365,17 +412,20 @@ const RobotPet = () => {
               </div>
               <h3 className="text-md mb-2 terminal-glow">Upgrades Installed:</h3>
               <ul className="list-disc list-inside">
-                {currentBot.upgrades.map((upgrade) => (
-                  <li key={upgrade.name} className="mb-1">
-                    <span className={`${upgrade.applied ? 'text-green-400' : 'text-red-400'}`}>
-                      {upgrade.name} {upgrade.applied ? '(Applied)' : '(Not Applied)'}
-                    </span>
-                    <p className="text-xs opacity-70 ml-4">{upgrade.effect}</p>
-                    <p className="text-xs opacity-70 ml-4">
-                      <strong>Cost:</strong> {upgrade.cost.map(c => `${c.amount} ${c.name}`).join(', ')}
-                    </p>
-                  </li>
-                ))}
+                {currentBot.upgrades.filter(u => u.applied).length === 0 ? (
+                  <li className="mb-1 text-gray-500">No upgrades installed.</li>
+                ) : (
+                  currentBot.upgrades.map((upgrade) => 
+                    upgrade.applied && (
+                      <li key={upgrade.name} className="mb-1">
+                        <span className="text-green-400">
+                          {upgrade.name} (Installed)
+                        </span>
+                        <p className="text-xs opacity-70 ml-4">{upgrade.effect}</p>
+                      </li>
+                    )
+                  )
+                )}
               </ul>
             </div>
 
