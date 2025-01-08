@@ -9,7 +9,7 @@ interface Bot {
   upgrades: Upgrade[];
   isOnMission: boolean;
   missionTimeLeft: number | null;
-  pixelData: string[][];  // 16x16 pixel art data
+  asciiArt: string;
 }
 
 interface Resource {
@@ -61,29 +61,26 @@ const defaultUpgrades: Upgrade[] = [
   }
 ];
 
-// Updated Pixel Art Arrays with varied colors
-const botStyle1: string[][] = Array(16).fill(null).map((_, row) =>
-  Array(16).fill(null).map((_, col) => {
-    if(row < 2 || row > 13 || col < 2 || col > 13) return '#00f'; // blue border
-    if(row >= 4 && row <= 11 && col >= 4 && col <= 11) return '#ff0'; // yellow interior
-    return '#000'; // black background
-  })
-);
-
-const botStyle2: string[][] = Array(16).fill(null).map((_, row) =>
-  Array(16).fill(null).map((_, col) =>
-    (row + col) % 2 === 0 ? '#800080' : '#000'
-  )
-);
-
-const botStylesPixel = [botStyle1, botStyle2];
-
 const initialResources: Resource[] = [
   { name: 'bolts', amount: 0 },
   { name: 'magnets', amount: 0 },
   { name: 'wires', amount: 0 },
   { name: 'circuit', amount: 0 }
 ];
+
+// Array of emojis to represent bots
+const botEmojis = ["🤖", "🐱", "🐶", "🦊", "🐻‍❄️"];
+
+// Function to generate ASCII art with an embedded emoji
+const generateAsciiBot = (emoji: string): string => `
+╭──────────╮
+│   ${emoji}     │
+│  ─────   │
+│ |=====|  │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`;
 
 const RobotPet = () => {
   const [cursorVisible, setCursorVisible] = useState(true);
@@ -97,7 +94,7 @@ const RobotPet = () => {
     upgrades: defaultUpgrades.map(upg => ({ ...upg })),
     isOnMission: false,
     missionTimeLeft: null,
-    pixelData: botStyle1
+    asciiArt: generateAsciiBot("🤖")
   }]);
 
   const [activeBot, setActiveBot] = useState<string>('bot-1');
@@ -216,8 +213,6 @@ const RobotPet = () => {
       ]
     }
   ];
-
-  const getBotPixelData = () => currentBot.pixelData;
 
   const startMission = (mission: Mission) => {
     if (currentBot.energy < mission.requiredBatteryLevel) {
@@ -348,7 +343,8 @@ const RobotPet = () => {
     const newBotId = `bot-${bots.length + 1}`;
     const botNames = ['C3-vxx', 'ZX-12', 'VX-99', 'SM-33'];
     const randomName = botNames[bots.length % botNames.length] + `-${bots.length + 1}`;
-    const randomPixelArt = botStylesPixel[Math.floor(Math.random() * botStylesPixel.length)];
+    const randomEmoji = botEmojis[Math.floor(Math.random() * botEmojis.length)];
+    const asciiArt = generateAsciiBot(randomEmoji);
 
     const newBot: Bot = {
       id: newBotId,
@@ -358,7 +354,7 @@ const RobotPet = () => {
       upgrades: defaultUpgrades.map(upg => ({ ...upg })),
       isOnMission: false,
       missionTimeLeft: null,
-      pixelData: randomPixelArt
+      asciiArt
     };
 
     setBots(prevBots => [...prevBots, newBot]);
@@ -375,7 +371,7 @@ const RobotPet = () => {
             <div>ROBOPET v1.0.0 - TERMINAL MODE</div>
             <div>SYSTEM ACTIVE...</div>
           </div>
-          
+
           {/* Bot Switching Buttons */}
           <div className="mb-4 text-center">
             <span className="text-xs terminal-glow opacity-70 mr-2">
@@ -392,25 +388,15 @@ const RobotPet = () => {
               </button>
             ))}
           </div>
-          
+
           {/* Robot Display and Stats Readout Container */}
           <div className="grid grid-cols-2 gap-6">
             {/* Bot Display Column */}
             <div>
               <div className="relative mb-4">
-                <div className="pixel-art-container">
-                  {getBotPixelData().map((row, rowIndex) => (
-                    <div className="pixel-row" key={rowIndex}>
-                      {row.map((color, colIndex) => (
-                        <div
-                          key={colIndex}
-                          className="pixel"
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
-                    </div>
-                  ))}
-                </div>
+                <pre className="text-3xl whitespace-pre leading-tight text-center terminal-glow">
+                  {currentBot.asciiArt}
+                </pre>
                 {currentBot.isOnMission && currentBot.missionTimeLeft !== null && (
                   <div className="absolute top-0 right-0 text-xl terminal-glow animate-pulse">
                     T-{currentBot.missionTimeLeft}s
