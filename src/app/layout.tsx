@@ -13,7 +13,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="min-h-screen w-full flex flex-col">
+        {/* A top-level container that could be used for global layout adjustments */}
+        <div className="flex-grow">
+          {children}
+        </div>
+      </body>
     </html>
   )
 }
