@@ -58,7 +58,11 @@ const happyFace2 = "[ >--< ]";
 const angryFace1 = "[.\\--/.]";
 const angryFace2 = "[./--\\.]";
 
-const generateAsciiBot = (face: string): string => `
+// Define multiple ASCII templates for unique bot appearances
+const generateAsciiBotTemplate = (emoji: string, face: string, template: number): string => {
+  switch(template) {
+    case 1:
+      return `
 ╭──────────╮
 │   ${face}    │
 │  ─────   │
@@ -67,11 +71,35 @@ const generateAsciiBot = (face: string): string => `
 │  ║   ║   │
 ╰──╨───╨───╯
 `;
+    case 2:
+      return `
+╭──────────╮
+│  [${face}]  │
+│  ─────   │
+│ |#####|  │
+╰──────────╯
+│  ||  ||  │
+╰──╨──╨───╯
+`;
+    case 3:
+      return `
+╭──────────╮
+│  (  ${face}  ) │
+│   -----  │
+│  |=====| │
+╰──────────╯
+│  ||  ||  │
+╰──╨──╨───╯
+`;
+    default:
+      return generateAsciiBotTemplate(emoji, face, 1);
+  }
+};
 
 const RobotPet = () => {
   const [cursorVisible, setCursorVisible] = useState(true);
   const [resources, setResources] = useState<Resource[]>(initialResources);
-
+  
   const [bots, setBots] = useState<Bot[]>([{
     id: 'bot-1',
     name: 'SM-33',
@@ -80,7 +108,7 @@ const RobotPet = () => {
     upgrades: defaultUpgrades.map(upg => ({ ...upg })),
     isOnMission: false,
     missionTimeLeft: null,
-    asciiArt: generateAsciiBot(normalFace)
+    asciiArt: generateAsciiBotTemplate("🤖", normalFace, 1)
   }]);
 
   const [activeBot, setActiveBot] = useState<string>('bot-1');
@@ -106,14 +134,14 @@ const RobotPet = () => {
       else if (currentBot.happiness < 20) frames = [angryFace1, angryFace2];
       let index = 0;
       const blinkInterval = setInterval(() => {
-        updateBotState(currentBot.id, { asciiArt: generateAsciiBot(frames[index]) });
+        // Use the existing template (template 1) for blinking
+        updateBotState(currentBot.id, { asciiArt: generateAsciiBotTemplate("🤖", frames[index], 1) });
         index = (index + 1) % frames.length;
       }, 1000);
       return () => clearInterval(blinkInterval);
     }
   }, [currentBot.isOnMission, currentBot.happiness, currentBot.id]);
 
-  // "Returning" effect when 3 seconds or less remain
   useEffect(() => {
     if (currentBot.isOnMission && currentBot.missionTimeLeft !== null && currentBot.missionTimeLeft <= 3) {
       updateBotState(currentBot.id, { asciiArt: "Returning..." });
@@ -201,7 +229,7 @@ const RobotPet = () => {
     updateBotState(currentBot.id, {
       isOnMission: false,
       missionTimeLeft: null,
-      asciiArt: generateAsciiBot(normalFace)
+      asciiArt: generateAsciiBotTemplate("🤖", normalFace, 1)
     });
 
     setResources(prevResources => {
@@ -289,7 +317,8 @@ const RobotPet = () => {
     const botNames = ['C3-vxx', 'ZX-12', 'VX-99', 'SM-33'];
     const randomName = botNames[bots.length % botNames.length] + `-${bots.length + 1}`;
     const randomEmoji = botEmojis[Math.floor(Math.random() * botEmojis.length)];
-    const asciiArt = generateAsciiBot(randomEmoji);
+    const template = Math.floor(Math.random() * 3) + 1;
+    const asciiArt = generateAsciiBotTemplate(randomEmoji, normalFace, template);
     const newBot: Bot = {
       id: newBotId,
       name: randomName,
@@ -433,7 +462,6 @@ const RobotPet = () => {
             </div>
           </div>
 
-          {/* Bottom Section for Build Bot */}
           <div className="grid grid-cols-2 gap-6 mt-6">
             <div className="space-y-6">
               <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} BUILD BOT</div>
@@ -448,6 +476,8 @@ const RobotPet = () => {
                 </div>
               </button>
             </div>
+            {/* Placeholder for alignment if needed */}
+            <div></div>
           </div>
 
           <div className="text-xs text-[#4af626]/70 border-t border-[#4af626]/20 mt-6 pt-4 terminal-glow text-center">
