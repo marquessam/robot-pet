@@ -9,7 +9,7 @@ interface Bot {
   upgrades: Upgrade[];
   isOnMission: boolean;
   missionTimeLeft: number | null;
-  asciiArt: string;
+  pixelData: string[][];  // 16x16 pixel art data
 }
 
 interface Resource {
@@ -61,37 +61,20 @@ const defaultUpgrades: Upgrade[] = [
   }
 ];
 
-// Define several non-anthropomorphic robot styles
-const botStyles = [
-  `
-╭──────────╮
-│  [===]   │
-│  |   |   │
-│  |___|   │
-╰──────────╯
-  `,
-  `
-╭──────────╮
-│  <===>   │
-│  |   |   │
-│  |===|   │
-╰──────────╯
-  `,
-  `
-╭──────────╮
-│  .---.   │
-│ |     |  │
-│ |     |  │
-╰──────────╯
-  `,
-  `
-╭──────────╮
-│  [***]   │
-│   | |    │
-│   |_|    │
-╰──────────╯
-  `
-];
+// Example 16x16 pixel art arrays for bots
+const botStyle1: string[][] = Array(16).fill(null).map((_, row) =>
+  Array(16).fill(null).map((_, col) =>
+    (row === 0 || row === 15 || col === 0 || col === 15) ? '#4af626' : '#000'
+  )
+);
+
+const botStyle2: string[][] = Array(16).fill(null).map((_, row) =>
+  Array(16).fill(null).map((_, col) =>
+    (row + col) % 2 === 0 ? '#4af626' : '#000'
+  )
+);
+
+const botStylesPixel = [botStyle1, botStyle2];
 
 const initialResources: Resource[] = [
   { name: 'bolts', amount: 0 },
@@ -112,7 +95,7 @@ const RobotPet = () => {
     upgrades: defaultUpgrades.map(upg => ({ ...upg })),
     isOnMission: false,
     missionTimeLeft: null,
-    asciiArt: botStyles[0]
+    pixelData: botStyle1
   }]);
 
   const [activeBot, setActiveBot] = useState<string>('bot-1');
@@ -120,20 +103,17 @@ const RobotPet = () => {
 
   const currentBot = bots.find(bot => bot.id === activeBot)!;
 
-  // Helper to update bot state
   const updateBotState = (botId: string, updates: Partial<Bot>) => {
     setBots(prevBots =>
       prevBots.map(bot => bot.id === botId ? { ...bot, ...updates } : bot)
     );
   };
 
-  // Cursor blink effect
   useEffect(() => {
     const interval = setInterval(() => setCursorVisible(v => !v), 530);
     return () => clearInterval(interval);
   }, []);
 
-  // Monitor current bot energy for death condition
   useEffect(() => {
     if (currentBot && currentBot.energy <= 0) {
       setLastInteraction(`${currentBot.name} has died.`);
@@ -160,7 +140,6 @@ const RobotPet = () => {
     }
   }, [currentBot?.energy]);
 
-  // Mission timer effect for current bot
   useEffect(() => {
     if (!currentBot?.isOnMission) return;
     const timer = setInterval(() => {
@@ -236,62 +215,7 @@ const RobotPet = () => {
     }
   ];
 
-  const robotTired = `
-╭──────────╮
-│  (._.)   │
-│  ─────   │
-│ |=====|  │
-╰──────────╯
-│  ║   ║   │
-╰──╨───╨───╯
-`;
-
-  const robotHappy = `
-╭──────────╮
-│  (^o^)   │
-│  ─────   │
-│ |=====|  │
-╰──────────╯
-│  ║   ║   │
-╰──╨───╨───╯
-`;
-
-  const robotNormal = `
-╭──────────╮
-│  [===]   │
-│  |   |   │
-│  |___|   │
-╰──────────╯
-│  ║   ║   │
-╰──╨───╨───╯
-`;
-
-  const robotMission = `
-╭──────────╮
-│  (>_<)   │
-│  ─────   │
-│ |=====|  │
-╰──────────╯
-│  ║   ║   │
-╰──╨───╨───╯
-`;
-
-  const robotEmpty = `
-╭──────────╮
-│          │
-│  (Gone)  │
-│          │
-╰──────────╯
-│          │
-╰──────────╯
-`;
-
-  const getRobotState = () => {
-    if (currentBot.isOnMission) return robotEmpty;
-    if (currentBot.energy < 30) return robotTired;
-    if (currentBot.happiness > 80) return robotHappy;
-    return robotNormal;
-  };
+  const getBotPixelData = () => currentBot.pixelData;
 
   const startMission = (mission: Mission) => {
     if (currentBot.energy < mission.requiredBatteryLevel) {
@@ -313,8 +237,7 @@ const RobotPet = () => {
       isOnMission: true,
       missionTimeLeft: mission.duration,
       energy: newEnergy,
-      happiness: newHappiness,
-      asciiArt: robotMission
+      happiness: newHappiness
     });
 
     setLastInteraction(`Started mission: ${mission.name}`);
@@ -327,8 +250,7 @@ const RobotPet = () => {
   const completeMission = (mission: Mission) => {
     updateBotState(currentBot.id, {
       isOnMission: false,
-      missionTimeLeft: null,
-      asciiArt: getRobotState()
+      missionTimeLeft: null
     });
 
     setResources(prevResources => {
@@ -395,7 +317,6 @@ const RobotPet = () => {
     setLastInteraction(`Upgrade applied: ${upgrade.name}!`);
   };
 
-  // Build Bot Functionality
   const buildBotCost: Resource[] = [
     { name: 'bolts', amount: 10 },
     { name: 'magnets', amount: 5 },
@@ -425,7 +346,7 @@ const RobotPet = () => {
     const newBotId = `bot-${bots.length + 1}`;
     const botNames = ['C3-vxx', 'ZX-12', 'VX-99', 'SM-33'];
     const randomName = botNames[bots.length % botNames.length] + `-${bots.length + 1}`;
-    const randomStyle = botStyles[Math.floor(Math.random() * botStyles.length)];
+    const randomPixelArt = botStylesPixel[Math.floor(Math.random() * botStylesPixel.length)];
 
     const newBot: Bot = {
       id: newBotId,
@@ -435,7 +356,7 @@ const RobotPet = () => {
       upgrades: defaultUpgrades.map(upg => ({ ...upg })),
       isOnMission: false,
       missionTimeLeft: null,
-      asciiArt: randomStyle
+      pixelData: randomPixelArt
     };
 
     setBots(prevBots => [...prevBots, newBot]);
@@ -475,9 +396,19 @@ const RobotPet = () => {
             {/* Bot Display Column */}
             <div>
               <div className="relative mb-4">
-                <pre className="text-3xl whitespace-pre leading-tight font-mono text-[#4af626] terminal-glow">
-                  {getRobotState()}
-                </pre>
+                <div className="pixel-art-container">
+                  {getBotPixelData().map((row, rowIndex) => (
+                    <div className="pixel-row" key={rowIndex}>
+                      {row.map((color, colIndex) => (
+                        <div
+                          key={colIndex}
+                          className="pixel"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
                 {currentBot.isOnMission && currentBot.missionTimeLeft !== null && (
                   <div className="absolute top-0 right-0 text-xl terminal-glow animate-pulse">
                     T-{currentBot.missionTimeLeft}s
