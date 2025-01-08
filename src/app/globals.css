@@ -7,22 +7,23 @@
   --terminal-black: #0d0208;
 }
 
-body {
+html, body {
+  height: 100vh;
   margin: 0;
   padding: 0;
   background-color: var(--terminal-black);
-  color: var(--terminal-green);
-  min-height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 }
 
-.terminal-container {
-  width: 90%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
+.terminal-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .terminal-glow {
