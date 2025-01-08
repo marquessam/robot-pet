@@ -8,12 +8,21 @@
 }
 
 body {
+  margin: 0;
+  padding: 0;
   background-color: var(--terminal-black);
   color: var(--terminal-green);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-button:disabled {
-  opacity: 0.5;
+.terminal-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .terminal-glow {
