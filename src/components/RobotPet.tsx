@@ -243,7 +243,7 @@ const RobotPet = () => {
       <div className="relative screen rounded-xl overflow-hidden shadow-[0_0_20px_rgba(74,246,38,0.2)] border border-[#4af626]/20 crt">
         <div className="relative font-mono text-[#4af626] p-8">
           {/* Title */}
-          <div className="text-xs mb-6 flex flex-col gap-1 terminal-glow opacity-50">
+          <div className="text-xs mb-6 flex flex-col gap-1 terminal-glow opacity-50 text-center">
             <div>ROBOPET v1.0.0 - TERMINAL MODE</div>
             <div>SYSTEM ACTIVE...</div>
           </div>
@@ -276,8 +276,8 @@ const RobotPet = () => {
             <div className="space-y-6">
               {/* Commands */}
               <div>
-                <div className="text-xs mb-2 text-[#4af626]/50">{'>>'} COMMANDS</div>
-                <div className="flex gap-2">
+                <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} COMMANDS</div>
+                <div className="flex gap-2 justify-center">
                   <button 
                     onClick={charge}
                     disabled={isOnMission}
@@ -297,8 +297,8 @@ const RobotPet = () => {
 
               {/* Inventory */}
               <div>
-                <div className="text-xs mb-2 text-[#4af626]/50">{'>>'} INVENTORY</div>
-                <div className="space-y-1">
+                <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} INVENTORY</div>
+                <div className="space-y-1 text-center">
                   {resources.map(resource => (
                     <div key={resource.name} className="font-mono text-sm terminal-glow">
                       [{resource.name.toUpperCase()}: {resource.amount}]
@@ -312,8 +312,8 @@ const RobotPet = () => {
             <div className="space-y-6">
               {/* Missions */}
               <div>
-                <div className="text-xs mb-2 text-[#4af626]/50">{'>>'} MISSIONS</div>
-                <div className="space-y-1">
+                <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} MISSIONS</div>
+                <div className="space-y-1 flex flex-col items-center">
                   {missions.map(mission => (
                     <button
                       key={mission.name}
@@ -329,8 +329,8 @@ const RobotPet = () => {
 
               {/* Upgrades */}
               <div>
-                <div className="text-xs mb-2 text-[#4af626]/50">{'>>'} UPGRADES</div>
-                <div className="space-y-1">
+                <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} UPGRADES</div>
+                <div className="space-y-1 flex flex-col items-center">
                   {upgrades.map(upgrade => (
                     <button
                       key={upgrade.name}
@@ -350,7 +350,7 @@ const RobotPet = () => {
           </div>
 
           {/* Status Line */}
-          <div className="text-xs text-[#4af626]/70 border-t border-[#4af626]/20 mt-6 pt-4 terminal-glow">
+          <div className="text-xs text-[#4af626]/70 border-t border-[#4af626]/20 mt-6 pt-4 terminal-glow text-center">
             {'>>'} {lastInteraction || 'Awaiting command...'}{cursorVisible ? '_' : ' '}
           </div>
         </div>
