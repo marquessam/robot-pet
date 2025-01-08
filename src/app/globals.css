@@ -22,7 +22,8 @@ body {
 /* Increased width for expanded layout */
 .terminal-container {
   width: 90%;
-  max-width: 1200px;  /* Increased to allow 2x2 grid space */
+  max-width: 1200px;
+  min-height: 800px;
   margin: 0 auto;
   padding: 1rem;
   animation: fadeIn 0.5s ease-in;
