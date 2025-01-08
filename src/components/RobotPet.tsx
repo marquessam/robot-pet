@@ -104,21 +104,16 @@ const RobotPet = () => {
   const [cursorVisible, setCursorVisible] = useState(true);
   const [resources, setResources] = useState<Resource[]>(initialResources);
   
+  // Start with one bot named SM-33
   const [bots, setBots] = useState<Bot[]>([{
     id: 'bot-1',
-    name: 'BOT-1',
+    name: 'SM-33',
     energy: 100,
     happiness: 100,
     upgrades: defaultUpgrades.map(upg => ({ ...upg })),
     isOnMission: false,
     missionTimeLeft: null,
-    asciiArt: `
-╭──────────╮
-│  [===]   │
-│  |   |   │
-│  |___|   │
-╰──────────╯
-    `
+    asciiArt: botStyles[0]
   }]);
 
   const [activeBot, setActiveBot] = useState<string>('bot-1');
@@ -429,11 +424,14 @@ const RobotPet = () => {
     });
 
     const newBotId = `bot-${bots.length + 1}`;
+    // Example names for bots: alternate between a few patterns
+    const botNames = ['C3-vxx', 'ZX-12', 'VX-99', 'SM-33'];
+    const randomName = botNames[bots.length % botNames.length] + `-${bots.length + 1}`;
     const randomStyle = botStyles[Math.floor(Math.random() * botStyles.length)];
 
     const newBot: Bot = {
       id: newBotId,
-      name: `BOT-${bots.length + 1}`,
+      name: randomName,
       energy: 100,
       happiness: 100,
       upgrades: defaultUpgrades.map(upg => ({ ...upg })),
@@ -457,33 +455,62 @@ const RobotPet = () => {
             <div>SYSTEM ACTIVE...</div>
           </div>
           
-          {/* Bot Selection */}
+          {/* Bot Switching Buttons */}
           <div className="mb-4 text-center">
-            <label htmlFor="bot-select" className="text-xs terminal-glow opacity-70 mr-2">
-              {'>>'} SELECT BOT:
-            </label>
-            <select
-              id="bot-select"
-              value={activeBot}
-              onChange={(e) => setActiveBot(e.target.value)}
-              className="terminal-glow px-2 py-1 border border-[#4af626]/50 bg-transparent text-[#4af626] rounded"
-            >
-              {bots.map(bot => (
-                <option key={bot.id} value={bot.id}>{bot.name}</option>
-              ))}
-            </select>
+            <span className="text-xs terminal-glow opacity-70 mr-2">
+              {'>>'} SWITCH BOT:
+            </span>
+            {bots.map(bot => (
+              <button
+                key={bot.id}
+                onClick={() => setActiveBot(bot.id)}
+                disabled={bot.id === activeBot}
+                className="mx-1 px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                {bot.name}
+              </button>
+            ))}
           </div>
-
-          {/* Robot Display */}
-          <div className="relative">
-            <pre className="text-3xl whitespace-pre mb-4 leading-tight font-mono text-[#4af626] terminal-glow">
-              {getRobotState()}
-            </pre>
-            {currentBot.isOnMission && currentBot.missionTimeLeft !== null && (
-              <div className="absolute top-0 right-0 text-xl terminal-glow animate-pulse">
-                T-{currentBot.missionTimeLeft}s
+          
+          {/* Robot Display and Stats Readout Container */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Bot Display Column */}
+            <div>
+              <div className="relative mb-4">
+                <pre className="text-3xl whitespace-pre leading-tight font-mono text-[#4af626] terminal-glow">
+                  {getRobotState()}
+                </pre>
+                {currentBot.isOnMission && currentBot.missionTimeLeft !== null && (
+                  <div className="absolute top-0 right-0 text-xl terminal-glow animate-pulse">
+                    T-{currentBot.missionTimeLeft}s
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+
+            {/* Stats Readout Column */}
+            <div className="stats-readout border border-[#4af626]/30 p-4 rounded">
+              <h2 className="text-lg mb-2 terminal-glow">Bot Stats</h2>
+              <div className="mb-4">
+                <p><strong>Name:</strong> {currentBot.name}</p>
+                <p><strong>Energy:</strong> {currentBot.energy}%</p>
+                <p><strong>Happiness:</strong> {currentBot.happiness}%</p>
+              </div>
+              <h3 className="text-md mb-2 terminal-glow">Upgrades Installed:</h3>
+              <ul className="list-disc list-inside">
+                {currentBot.upgrades.map((upgrade) => (
+                  <li key={upgrade.name} className="mb-1">
+                    <span className={`${upgrade.applied ? 'text-green-400' : 'text-red-400'}`}>
+                      {upgrade.name} {upgrade.applied ? '(Applied)' : '(Not Applied)'}
+                    </span>
+                    <p className="text-xs opacity-70 ml-4">{upgrade.effect}</p>
+                    <p className="text-xs opacity-70 ml-4">
+                      <strong>Cost:</strong> {upgrade.cost.map(c => `${c.amount} ${c.name}`).join(', ')}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           {/* Status Display */}
