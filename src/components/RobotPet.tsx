@@ -222,32 +222,42 @@ const RobotPet = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 p-8 flex items-center justify-center">
-      <div className="relative w-full max-w-2xl bg-black rounded-lg overflow-hidden shadow-[0_0_15px_rgba(0,255,0,0.3)]">
-        <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(0deg,rgba(0,0,0,0.8)_0px,rgba(0,0,0,0.8)_1px,transparent_1px,transparent_2px)]"></div>
+    <div className="min-h-screen bg-black p-4 flex items-center justify-center">
+      {/* CRT screen effect container */}
+      <div className="relative w-full max-w-3xl bg-black rounded-xl overflow-hidden shadow-[0_0_20px_rgba(32,128,32,0.3)] border border-green-900">
+        {/* Scan line effect */}
+        <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(0deg,rgba(0,32,0,0.2)_0px,rgba(0,32,0,0.2)_1px,transparent_1px,transparent_2px)]"></div>
+        {/* Screen glare effect */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-green-500/5 via-transparent to-transparent"></div>
+        {/* Monitor edge effect */}
+        <div className="absolute inset-0 pointer-events-none border-4 border-gray-900 rounded-xl"></div>
         
-        <div className="relative font-mono text-green-500 p-8">
-          <div className="text-xs mb-4 opacity-70">ROBOPET v1.0.0 - TERMINAL MODE</div>
+        <div className="relative font-mono text-green-500/90 p-8 min-h-[768px]">
+          <div className="text-sm mb-6 flex flex-col gap-1">
+            <div className="text-green-500/70 border-b border-green-500/20 pb-2">ROBOPET v1.0.0 - TERMINAL MODE</div>
+            <div className="text-green-500/50 text-xs">INITIALIZING SYSTEM...</div>
+            <div className="text-green-500/50 text-xs">BOOT SEQUENCE COMPLETE</div>
+          </div>
           
-          <pre className="text-2xl whitespace-pre mb-4 leading-tight font-mono">
+          <pre className="text-3xl whitespace-pre mb-8 leading-tight font-mono text-green-400 animate-pulse">
             {getRobotState()}
             {cursorVisible ? '█' : ' '}
           </pre>
 
-          <div className="mb-6 opacity-90">
-            <div className="flex gap-4">
-              <div>[ENERGY: {energy}%]</div>
-              <div>[HAPPINESS: {happiness}%]</div>
+          <div className="mb-8 text-green-400/90">
+            <div className="flex gap-6">
+              <div className="border border-green-500/30 px-3 py-1">[ENERGY: {energy}%]</div>
+              <div className="border border-green-500/30 px-3 py-1">[HAPPINESS: {happiness}%]</div>
             </div>
           </div>
 
           <div className="mb-6">
-            <div className="text-xs mb-2 opacity-70">{'>>'} AVAILABLE COMMANDS:</div>
+            <div className="text-xs mb-3 text-green-500/60 border-b border-green-500/20 pb-1">{'>>'} AVAILABLE COMMANDS:</div>
             <div className="flex gap-4">
               <button 
                 onClick={charge}
                 disabled={isOnMission}
-                className="px-4 py-1 border border-green-500 hover:bg-green-500 hover:bg-opacity-20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 border border-green-500/50 hover:bg-green-500/20 hover:border-green-400 disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-green-400 hover:text-green-300 disabled:text-green-500/30"
               >
                 [CHARGE]
               </button>
