@@ -202,3 +202,17 @@ select:focus {
     grid-template-columns: 1fr;
   }
 }
+
+/* Pixel Art Styles */
+.pixel-art-container {
+  display: inline-block;
+}
+
+.pixel-row {
+  display: flex;
+}
+
+.pixel {
+  width: 10px;      /* Adjust pixel size as desired */
+  height: 10px;
+}
