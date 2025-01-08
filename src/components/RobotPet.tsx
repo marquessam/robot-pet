@@ -99,7 +99,7 @@ const RobotPet = () => {
 
   useEffect(() => {
     if (!currentBot.isOnMission) {
-      let frames = [blinkFace, normalFace]; 
+      let frames = [blinkFace, normalFace];
       if (currentBot.happiness > 80) frames = [happyFace1, happyFace2];
       else if (currentBot.happiness < 20) frames = [angryFace1, angryFace2];
       let index = 0;
@@ -401,7 +401,7 @@ const RobotPet = () => {
             </div>
           </div>
 
-          {/* Commands, Inventory, Build Bot sections below the grid */}
+          {/* Commands, Inventory, Build Bot Sections */}
           <div className="grid grid-cols-2 gap-6 mt-6">
             <div className="space-y-6">
               <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} COMMANDS</div>
@@ -455,4 +455,3 @@ const RobotPet = () => {
 };
 
 export default RobotPet;
-
