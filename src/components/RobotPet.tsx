@@ -61,11 +61,13 @@ const defaultUpgrades: Upgrade[] = [
   }
 ];
 
-// Example 16x16 pixel art arrays for bots
+// Updated 16x16 Pixel Art Arrays for variety
 const botStyle1: string[][] = Array(16).fill(null).map((_, row) =>
-  Array(16).fill(null).map((_, col) =>
-    (row === 0 || row === 15 || col === 0 || col === 15) ? '#4af626' : '#000'
-  )
+  Array(16).fill(null).map((_, col) => {
+    if(row < 2 || row > 13 || col < 2 || col > 13) return '#4af626'; // green border
+    if(row >= 4 && row <= 11 && col >= 4 && col <= 11) return '#f00'; // red square inside
+    return '#000'; // black background
+  })
 );
 
 const botStyle2: string[][] = Array(16).fill(null).map((_, row) =>
