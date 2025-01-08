@@ -223,8 +223,8 @@ const RobotPet = () => {
   }
 
   return (
-    <div className="fixed inset-0 bg-[#0d0208] flex items-center justify-center p-4">
-      <div className="relative w-full max-w-3xl screen rounded-xl overflow-hidden shadow-[0_0_20px_rgba(74,246,38,0.2)] border border-[#4af626]/20 crt h-[90vh]">
+    <div className="terminal-container">
+      <div className="relative screen rounded-xl overflow-hidden shadow-[0_0_20px_rgba(74,246,38,0.2)] border border-[#4af626]/20 crt">
         <div className="relative font-mono text-[#4af626] p-8 h-full overflow-y-auto">
           {/* Title and Boot Sequence */}
           <div className="text-sm mb-6 flex flex-col gap-1 terminal-glow">
