@@ -50,12 +50,26 @@ const RobotPet = () => {
   ])
 
   // Blink cursor effect
+  const [missionTimeLeft, setMissionTimeLeft] = useState<number | null>(null)
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCursorVisible(v => !v)
     }, 530)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    if (isOnMission && missionTimeLeft !== null) {
+      const timer = setInterval(() => {
+        setMissionTimeLeft((prev) => {
+          if (prev === null || prev <= 0) return null
+          return prev - 1
+        })
+      }, 1000)
+      return () => clearInterval(timer)
+    }
+  }, [isOnMission, missionTimeLeft])
 
   const missions: Mission[] = [
     {
@@ -146,7 +160,7 @@ const RobotPet = () => {
     }
   }
 
-  const startMission = (mission: Mission) => {
+      const startMission = (mission: Mission) => {
     if (energy < mission.requiredBatteryLevel) {
       setLastInteraction('Not enough energy for this mission!')
       return
@@ -158,6 +172,7 @@ const RobotPet = () => {
 
     setIsOnMission(true)
     setEnergy(Math.max(0, energy - mission.energyCost))
+    setMissionTimeLeft(mission.duration)
     
     const happinessCost = upgrades.find(u => u.name === 'Happy Circuits')?.applied 
       ? Math.floor(mission.happinessCost * 0.7) 
@@ -173,9 +188,10 @@ const RobotPet = () => {
     setMissionTimer(timer as unknown as number)
   }
 
-  const completeMission = (mission: Mission) => {
+      const completeMission = (mission: Mission) => {
     setIsOnMission(false)
     setMissionTimer(null)
+    setMissionTimeLeft(null)
     
     setResources(prevResources => {
       const newResources = [...prevResources]
@@ -227,86 +243,113 @@ const RobotPet = () => {
       <div className="relative screen rounded-xl overflow-hidden shadow-[0_0_20px_rgba(74,246,38,0.2)] border border-[#4af626]/20 crt">
         <div className="relative font-mono text-[#4af626] p-8 h-full overflow-y-auto">
           {/* Title and Boot Sequence */}
-          <div className="text-sm mb-6 flex flex-col gap-1 terminal-glow">
-            <div className="text-[#4af626] border-b border-[#4af626]/20 pb-2">ROBOPET v1.0.0 - TERMINAL MODE</div>
-            <div className="text-[#4af626]/70 text-xs">INITIALIZING SYSTEM...</div>
-            <div className="text-[#4af626]/70 text-xs">BOOT SEQUENCE COMPLETE</div>
+          <div className="text-xs mb-6 flex flex-col gap-1 terminal-glow opacity-50">
+            <div>ROBOPET v1.0.0 - TERMINAL MODE</div>
+            <div>SYSTEM ACTIVE...</div>
           </div>
           
           {/* Robot Display */}
-          <pre className="text-3xl whitespace-pre mb-8 leading-tight font-mono text-[#4af626] terminal-glow">
-            {getRobotState()}
-            {cursorVisible ? '█' : ' '}
-          </pre>
+          <div className="relative">
+            <pre className="text-3xl whitespace-pre mb-4 leading-tight font-mono text-[#4af626] terminal-glow">
+              {getRobotState()}
+            </pre>
+            {isOnMission && missionTimeLeft !== null && (
+              <div className="absolute top-0 right-0 text-xl terminal-glow animate-pulse">
+                T-{missionTimeLeft}s
+              </div>
+            )}
+          </div>
 
           {/* Status Display */}
-          <div className="mb-8 text-[#4af626]">
-            <div className="flex gap-6">
-              <div className="border border-[#4af626]/30 px-3 py-1 terminal-glow">[ENERGY: {energy}%]</div>
-              <div className="border border-[#4af626]/30 px-3 py-1 terminal-glow">[HAPPINESS: {happiness}%]</div>
+          <div className="mb-6 text-[#4af626] grid grid-cols-2 gap-4">
+            <div className="border border-[#4af626]/30 px-3 py-1 terminal-glow text-center">
+              ⚡ {energy}%
+            </div>
+            <div className="border border-[#4af626]/30 px-3 py-1 terminal-glow text-center">
+              ❤️ {happiness}%
             </div>
           </div>
 
-          {/* Commands */}
-          <div className="mb-6">
-            <div className="text-xs mb-3 text-[#4af626]/80 border-b border-[#4af626]/20 pb-1 terminal-glow">{'>>'} AVAILABLE COMMANDS:</div>
-            <div className="flex gap-4">
-              <button 
-                onClick={charge}
-                disabled={isOnMission}
-                className="terminal-glow px-4 py-2 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626] hover:text-[#4af626] disabled:text-[#4af626]/30"
-              >
-                [CHARGE]
-              </button>
-              <button 
-                onClick={play}
-                disabled={energy < 10 || isOnMission}
-                className="terminal-glow px-4 py-2 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626] hover:text-[#4af626] disabled:text-[#4af626]/30"
-              >
-                [PLAY]
-              </button>
-            </div>
-          </div>
-
-          {/* Inventory */}
-          <div className="mb-6">
-            <div className="text-xs mb-3 text-[#4af626]/80 border-b border-[#4af626]/20 pb-1 terminal-glow">{'>>'} INVENTORY:</div>
-            <div className="grid grid-cols-3 gap-4">
-              {resources.map(resource => (
-                <div key={resource.name} className="font-mono terminal-glow">
-                  [{resource.name.toUpperCase()}: {resource.amount}]
+          {/* Main Interface */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Commands */}
+              <div>
+                <div className="text-xs mb-2 text-[#4af626]/50">{'>>'} COMMANDS</div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={charge}
+                    disabled={isOnMission}
+                    className="flex-1 terminal-glow px-3 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
+                  >
+                    [CHARGE]
+                  </button>
+                  <button 
+                    onClick={play}
+                    disabled={energy < 10 || isOnMission}
+                    className="flex-1 terminal-glow px-3 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
+                  >
+                    [PLAY]
+                  </button>
                 </div>
-              ))}
+              </div>
+
+              {/* Inventory */}
+              <div>
+                <div className="text-xs mb-2 text-[#4af626]/50">{'>>'} INVENTORY</div>
+                <div className="space-y-1">
+                  {resources.map(resource => (
+                    <div key={resource.name} className="font-mono text-sm terminal-glow">
+                      [{resource.name.toUpperCase()}: {resource.amount}]
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Missions */}
+              <div>
+                <div className="text-xs mb-2 text-[#4af626]/50">{'>>'} MISSIONS</div>
+                <div className="space-y-1">
+                  {missions.map(mission => (
+                    <button
+                      key={mission.name}
+                      onClick={() => startMission(mission)}
+                      disabled={isOnMission || energy < mission.requiredBatteryLevel}
+                      className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
+                    >
+                      [{mission.name}]
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Upgrades */}
+              <div>
+                <div className="text-xs mb-2 text-[#4af626]/50">{'>>'} UPGRADES</div>
+                <div className="space-y-1">
+                  {upgrades.map(upgrade => (
+                    <button
+                      key={upgrade.name}
+                      onClick={() => applyUpgrade(upgrade)}
+                      disabled={upgrade.applied}
+                      className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
+                    >
+                      [{upgrade.name}] {upgrade.applied ? '*' : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Missions */}
-          <div className="mb-6">
-            <div className="text-xs mb-3 text-[#4af626]/80 border-b border-[#4af626]/20 pb-1 terminal-glow">{'>>'} AVAILABLE MISSIONS:</div>
-            <div className="flex flex-col gap-2">
-              {missions.map(mission => (
-                <button
-                  key={mission.name}
-                  onClick={() => startMission(mission)}
-                  disabled={isOnMission || energy < mission.requiredBatteryLevel}
-                  className="text-left terminal-glow px-4 py-2 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626] hover:text-[#4af626] disabled:text-[#4af626]/30"
-                >
-                  [{mission.name}] - E:{mission.energyCost} H:-{mission.happinessCost}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Upgrades */}
-          <div className="mb-6">
-            <div className="text-xs mb-3 text-[#4af626]/80 border-b border-[#4af626]/20 pb-1 terminal-glow">{'>>'} UPGRADE MODULES:</div>
-            <div className="flex flex-col gap-2">
-              {upgrades.map(upgrade => (
-                <div key={upgrade.name} className="text-sm">
-                  <button
-                    onClick={() => applyUpgrade(upgrade)}
-                    disabled={upgrade.applied}
-                    className="w-full text-left terminal-glow px-4 py-2 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626] hover:text-[#4af626] disabled:text-[#4af626]/30"
+          {/* Status Line */}
+          <div className="text-xs text-[#4af626]/70 border-t border-[#4af626]/20 mt-6 pt-4 terminal-glow">
+            {'>>'} {lastInteraction || 'Awaiting command...'}{cursorVisible ? '_' : ' '}
+          </div>-[#4af626] disabled:text-[#4af626]/30"
                   >
                     [{upgrade.name}] {upgrade.applied ? '(INSTALLED)' : ''}
                     <div className="text-xs text-[#4af626]/70">
