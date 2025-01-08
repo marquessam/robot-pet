@@ -19,7 +19,7 @@ body {
   padding: 1rem;
 }
 
-/* Increased max-width for side-by-side layout */
+/* Increased width for side-by-side columns */
 .terminal-container {
   width: 90%;
   max-width: 1200px;  /* Increased from 800px to 1200px */
@@ -108,7 +108,7 @@ button:disabled {
   font-weight: bold;
 }
 
-/* Layout for grid items (if used) */
+/* Layout for grid items (if used elsewhere) */
 .terminal-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -183,7 +183,7 @@ select {
   font-size: 1rem;
 }
 
-/* Bot Selection Dropdown */
+/* Bot Selection Dropdown (if used) */
 select {
   background-color: transparent;
   border: 1px solid #4af626;
@@ -204,7 +204,7 @@ select:focus {
   }
 }
 
-/* Pixel Art Styles */
+/* Pixel Art Styles (preserved for potential future use) */
 .pixel-art-container {
   display: inline-block;
 }
