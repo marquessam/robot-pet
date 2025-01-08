@@ -65,10 +65,20 @@ const RobotPet = () => {
 
   const [activeBot, setActiveBot] = useState<string>('bot-1')
   const [lastInteraction, setLastInteraction] = useState('')
-  const [showBuildMenu, setShowBuildMenu] = useState(false)
-  const [newBotName, setNewBotName] = useState('')
 
   const currentBot = bots.find(bot => bot.id === activeBot)!
+  
+  // Helper to update bot state
+  const updateBotState = (botId: string, updates: Partial<Bot>) => {
+    setBots(prevBots =>
+      prevBots.map(bot => {
+        if (bot.id === botId) {
+          return { ...bot, ...updates }
+        }
+        return bot
+      })
+    )
+  }
 
   // Cursor blink effect
   useEffect(() => {
@@ -77,19 +87,6 @@ const RobotPet = () => {
     }, 530)
     return () => clearInterval(interval)
   }, [])
-
-  // Mission timer effect
-  useEffect(() => {
-    if (isOnMission && missionTimeLeft !== null) {
-      const timer = setInterval(() => {
-        setMissionTimeLeft((prev) => {
-          if (prev === null || prev <= 0) return null
-          return prev - 1
-        })
-      }, 1000)
-      return () => clearInterval(timer)
-    }
-  }, [isOnMission, missionTimeLeft])
 
   // Mission timer effect for current bot
   useEffect(() => {
@@ -104,7 +101,7 @@ const RobotPet = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentBot?.id, currentBot?.isOnMission]);
+  }, [currentBot?.id, currentBot?.isOnMission, currentBot?.missionTimeLeft]);
   
   const missions: Mission[] = [
     {
@@ -173,51 +170,54 @@ const RobotPet = () => {
   `
 
   const getRobotState = () => {
-    if (isOnMission) return robotMission
-    if (energy < 30) return robotTired
-    if (happiness > 80) return robotHappy
+    if (currentBot.isOnMission) return robotMission
+    if (currentBot.energy < 30) return robotTired
+    if (currentBot.happiness > 80) return robotHappy
     return robotNormal
   }
 
   const startMission = (mission: Mission) => {
-    if (energy < mission.requiredBatteryLevel) {
+    if (currentBot.energy < mission.requiredBatteryLevel) {
       setLastInteraction('Not enough energy for this mission!')
       return
     }
-    if (isOnMission) {
+    if (currentBot.isOnMission) {
       setLastInteraction('Already on a mission!')
       return
     }
 
-    setIsOnMission(true)
-    setEnergy(Math.max(0, energy - mission.energyCost))
-    setMissionTimeLeft(mission.duration)
-    
-    const happinessCost = upgrades.find(u => u.name === 'Happy Circuits')?.applied 
+    const newEnergy = Math.max(0, currentBot.energy - mission.energyCost)
+    const happinessCost = currentBot.upgrades.find(u => u.name === 'Happy Circuits' && u.applied) 
       ? Math.floor(mission.happinessCost * 0.7) 
       : mission.happinessCost
-    
-    setHappiness(Math.max(0, happiness - happinessCost))
+    const newHappiness = Math.max(0, currentBot.happiness - happinessCost)
+
+    updateBotState(currentBot.id, {
+      isOnMission: true,
+      missionTimeLeft: mission.duration,
+      energy: newEnergy,
+      happiness: newHappiness
+    })
+
     setLastInteraction(`Started mission: ${mission.name}`)
 
-    const timer = setTimeout(() => {
+    setTimeout(() => {
       completeMission(mission)
     }, mission.duration * 1000)
-
-    setMissionTimer(timer as unknown as number)
   }
 
   const completeMission = (mission: Mission) => {
-    setIsOnMission(false)
-    setMissionTimer(null)
-    setMissionTimeLeft(null)
+    updateBotState(currentBot.id, {
+      isOnMission: false,
+      missionTimeLeft: null
+    })
     
     setResources(prevResources => {
       const newResources = [...prevResources]
       mission.rewards.forEach(reward => {
-        const resourceIndex = newResources.findIndex(r => r.name === reward.name)
-        if (resourceIndex !== -1) {
-          newResources[resourceIndex].amount += reward.amount
+        const idx = newResources.findIndex(r => r.name === reward.name)
+        if (idx !== -1) {
+          newResources[idx].amount += reward.amount
         }
       })
       return newResources
@@ -227,19 +227,31 @@ const RobotPet = () => {
   }
 
   const charge = () => {
-    const chargeAmount = upgrades.find(u => u.name === 'Battery Boost')?.applied ? 30 : 20
-    setEnergy(Math.min(100, energy + chargeAmount))
+    const chargeAmount = currentBot.upgrades.find(u => u.name === 'Battery Boost' && u.applied) ? 30 : 20
+    const newEnergy = Math.min(100, currentBot.energy + chargeAmount)
+
+    updateBotState(currentBot.id, {
+      energy: newEnergy
+    })
+
     setLastInteraction('Charging... Battery replenished!')
   }
 
   const play = () => {
-    if (energy >= 10) {
-      setEnergy(Math.max(0, energy - 10))
-      setHappiness(Math.min(100, happiness + 15))
-      setLastInteraction('Playing with robot! It seems happy!')
-    } else {
+    if (currentBot.energy < 10) {
       setLastInteraction('Robot is too tired to play...')
+      return
     }
+
+    const newEnergy = Math.max(0, currentBot.energy - 10)
+    const newHappiness = Math.min(100, currentBot.happiness + 15)
+
+    updateBotState(currentBot.id, {
+      energy: newEnergy,
+      happiness: newHappiness
+    })
+
+    setLastInteraction('Playing with robot! It seems happy!')
   }
 
   const applyUpgrade = (upgrade: Upgrade) => {
@@ -256,16 +268,17 @@ const RobotPet = () => {
     setResources(prevResources => {
       const newResources = [...prevResources]
       upgrade.cost.forEach(cost => {
-        const resourceIndex = newResources.findIndex(r => r.name === cost.name)
-        if (resourceIndex !== -1) {
-          newResources[resourceIndex].amount -= cost.amount
+        const idx = newResources.findIndex(r => r.name === cost.name)
+        if (idx !== -1) {
+          newResources[idx].amount -= cost.amount
         }
       })
       return newResources
     })
 
-    setUpgrades(prevUpgrades => {
-      return prevUpgrades.map(u => 
+    // Update upgrades for currentBot
+    updateBotState(currentBot.id, {
+      upgrades: currentBot.upgrades.map(u => 
         u.name === upgrade.name ? { ...u, applied: true } : u
       )
     })
@@ -288,9 +301,9 @@ const RobotPet = () => {
             <pre className="text-3xl whitespace-pre mb-4 leading-tight font-mono text-[#4af626] terminal-glow">
               {getRobotState()}
             </pre>
-            {isOnMission && missionTimeLeft !== null && (
+            {currentBot.isOnMission && currentBot.missionTimeLeft !== null && (
               <div className="absolute top-0 right-0 text-xl terminal-glow animate-pulse">
-                T-{missionTimeLeft}s
+                T-{currentBot.missionTimeLeft}s
               </div>
             )}
           </div>
@@ -298,10 +311,10 @@ const RobotPet = () => {
           {/* Status Display */}
           <div className="mb-6 text-[#4af626] grid grid-cols-2 gap-4">
             <div className="border border-[#4af626]/30 px-3 py-1 terminal-glow text-center">
-              ⚡ {energy}%
+              ⚡ {currentBot.energy}%
             </div>
             <div className="border border-[#4af626]/30 px-3 py-1 terminal-glow text-center">
-              ❤️ {happiness}%
+              ❤️ {currentBot.happiness}%
             </div>
           </div>
 
@@ -315,14 +328,14 @@ const RobotPet = () => {
                 <div className="flex gap-2 justify-center">
                   <button 
                     onClick={charge}
-                    disabled={isOnMission}
+                    disabled={currentBot.isOnMission}
                     className="flex-1 terminal-glow px-3 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
                   >
                     [CHARGE]
                   </button>
                   <button 
                     onClick={play}
-                    disabled={energy < 10 || isOnMission}
+                    disabled={currentBot.energy < 10 || currentBot.isOnMission}
                     className="flex-1 terminal-glow px-3 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
                   >
                     [PLAY]
@@ -353,7 +366,7 @@ const RobotPet = () => {
                     <button
                       key={mission.name}
                       onClick={() => startMission(mission)}
-                      disabled={isOnMission || energy < mission.requiredBatteryLevel}
+                      disabled={currentBot.isOnMission || currentBot.energy < mission.requiredBatteryLevel}
                       className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
                     >
                       [{mission.name}]
@@ -366,7 +379,7 @@ const RobotPet = () => {
               <div>
                 <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} UPGRADES</div>
                 <div className="space-y-1 flex flex-col items-center">
-                  {upgrades.map(upgrade => (
+                  {currentBot.upgrades.map(upgrade => (
                     <button
                       key={upgrade.name}
                       onClick={() => applyUpgrade(upgrade)}
