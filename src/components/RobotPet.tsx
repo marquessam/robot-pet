@@ -210,8 +210,7 @@ const RobotPet = () => {
   };
 
   const charge = () => {
-    const chargeAmount = currentBot.upgrades.find(u => u.name === 'Battery Boost' && u.applied)
-      ? 30 : 20;
+    const chargeAmount = currentBot.upgrades.find(u => u.name === 'Battery Boost' && u.applied) ? 30 : 20;
     const newEnergy = Math.min(100, currentBot.energy + chargeAmount);
     updateBotState(currentBot.id, { energy: newEnergy });
     setLastInteraction('Charging... Battery replenished!');
@@ -401,7 +400,7 @@ const RobotPet = () => {
             </div>
           </div>
 
-          {/* Commands, Inventory, Build Bot Sections */}
+          {/* Commands, Inventory, Build Bot Section */}
           <div className="grid grid-cols-2 gap-6 mt-6">
             <div className="space-y-6">
               <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} COMMANDS</div>
