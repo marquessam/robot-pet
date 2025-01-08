@@ -323,7 +323,7 @@ const RobotPet = () => {
 
           {/* 2x2 Grid Layout */}
           <div className="grid grid-cols-2 gap-6 w-full">
-            {/* Top Left: Bot Display with Charge/Play buttons underneath */}
+            {/* Top Left: Bot Display with Charge/Play buttons */}
             <div className="mb-6 text-center">
               <pre className="text-3xl whitespace-pre leading-tight terminal-glow">
                 {currentBot.asciiArt}
@@ -387,7 +387,7 @@ const RobotPet = () => {
                     key={mission.name}
                     onClick={() => startMission(mission)}
                     disabled={currentBot.isOnMission || currentBot.energy < mission.requiredBatteryLevel}
-                    className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
+                    className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
                   >
                     [{mission.name}]
                   </button>
@@ -404,7 +404,7 @@ const RobotPet = () => {
                     key={upgrade.name}
                     onClick={() => applyUpgrade(upgrade)}
                     disabled={upgrade.applied}
-                    className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
+                    className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
                   >
                     [{upgrade.name}] {upgrade.applied ? '*' : ''}
                     <div className="text-xs opacity-70 mt-1 pl-2">
@@ -416,14 +416,7 @@ const RobotPet = () => {
             </div>
           </div>
 
-          {/* Commands, Inventory, Build Bot Section */}
           <div className="grid grid-cols-2 gap-6 mt-6">
-            <div className="space-y-6">
-              <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} COMMANDS</div>
-              <div className="flex gap-2 justify-center">
-                {/* Buttons already moved above under Bot Display */}
-              </div>
-            </div>
             <div className="space-y-6">
               <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} INVENTORY</div>
               <div className="space-y-1 text-center">
@@ -433,11 +426,13 @@ const RobotPet = () => {
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="space-y-6">
               <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} BUILD BOT</div>
               <button
                 onClick={buildBot}
                 disabled={!canBuildBot}
-                className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
+                className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
               >
                 [BUILD NEW BOT]
                 <div className="text-xs opacity-70 mt-1 pl-2">
@@ -457,4 +452,3 @@ const RobotPet = () => {
 };
 
 export default RobotPet;
-
