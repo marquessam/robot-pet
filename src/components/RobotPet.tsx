@@ -9,6 +9,7 @@ interface Bot {
   upgrades: Upgrade[];
   isOnMission: boolean;
   missionTimeLeft: number | null;
+  asciiArt: string;
 }
 
 interface Resource {
@@ -60,14 +61,23 @@ const RobotPet = () => {
       }
     ],
     isOnMission: false,
-    missionTimeLeft: null
+    missionTimeLeft: null,
+    asciiArt: `
+╭──────────╮
+│  (^_^ )  │
+│  ─────   │
+│ |=====|  │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`
   }])
 
   const [activeBot, setActiveBot] = useState<string>('bot-1')
   const [lastInteraction, setLastInteraction] = useState('')
 
   const currentBot = bots.find(bot => bot.id === activeBot)!
-  
+
   // Helper to update bot state
   const updateBotState = (botId: string, updates: Partial<Bot>) => {
     setBots(prevBots =>
@@ -102,7 +112,7 @@ const RobotPet = () => {
 
     return () => clearInterval(timer);
   }, [currentBot?.id, currentBot?.isOnMission, currentBot?.missionTimeLeft]);
-  
+
   const missions: Mission[] = [
     {
       name: 'Scrap Yard Search',
@@ -129,48 +139,59 @@ const RobotPet = () => {
     }
   ]
 
+  // ASCII Art Definitions
   const robotNormal = `
-    ╭──────────╮
-    │  ■ ■ ■  │
-    │  ─────  │
-    │ |=====| │
-    ╰──────────╯
-    │  ║   ║  │
-    ╰──╨───╨──╯
-  `
+╭──────────╮
+│  (^_^ )  │
+│  ─────   │
+│ |=====|  │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`
 
   const robotHappy = `
-    ╭──────────╮
-    │  ♦ ♦ ♦  │
-    │  ─────  │
-    │ |=====| │
-    ╰──────────╯
-    │  ║   ║  │
-    ╰──╨───╨──╯
-  `
+╭──────────╮
+│  (^o^)   │
+│  ─────   │
+│ |=====|  │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`
 
   const robotTired = `
-    ╭──────────╮
-    │  × × ×  │
-    │  ─────  │
-    │ |=====| │
-    ╰──────────╯
-    │  ║   ║  │
-    ╰──╨───╨──╯
-  `
+╭──────────╮
+│  (._.)   │
+│  ─────   │
+│ |=====|  │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`
 
   const robotMission = `
-    ╭──────────╮
-    │  {'>'}{'<'}{'>'}  │
-    │  ─────  │
-    │ |=====| │
-    ╰──────────╯
-    │  ║   ║  │
-    ╰──╨───╨──╯
-  `
+╭──────────╮
+│  (>_<)   │
+│  ─────   │
+│ |=====|  │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`
+
+  const robotNewBot = `
+╭──────────╮
+│  (^_^)   │
+│  ─────   │
+│ |=====|  │
+╰──────────╯
+│  ║   ║   │
+╰──╨───╨───╯
+`
 
   const getRobotState = () => {
-    if (currentBot.isOnMission) return robotMission
+    if (currentBot.isOnMission) return currentBot.asciiArt
     if (currentBot.energy < 30) return robotTired
     if (currentBot.happiness > 80) return robotHappy
     return robotNormal
@@ -196,7 +217,8 @@ const RobotPet = () => {
       isOnMission: true,
       missionTimeLeft: mission.duration,
       energy: newEnergy,
-      happiness: newHappiness
+      happiness: newHappiness,
+      asciiArt: robotMission
     })
 
     setLastInteraction(`Started mission: ${mission.name}`)
@@ -209,7 +231,8 @@ const RobotPet = () => {
   const completeMission = (mission: Mission) => {
     updateBotState(currentBot.id, {
       isOnMission: false,
-      missionTimeLeft: null
+      missionTimeLeft: null,
+      asciiArt: getRobotState() // Reset to appropriate state
     })
     
     setResources(prevResources => {
@@ -286,6 +309,67 @@ const RobotPet = () => {
     setLastInteraction(`Upgrade applied: ${upgrade.name}!`)
   }
 
+  // Build Bot Functionality
+  const buildBotCost: Resource[] = [
+    { name: 'bolts', amount: 10 },
+    { name: 'magnets', amount: 5 },
+    { name: 'wires', amount: 5 }
+  ]
+
+  const canBuildBot = buildBotCost.every(cost => {
+    const resource = resources.find(r => r.name === cost.name)
+    return resource && resource.amount >= cost.amount
+  })
+
+  const buildBot = () => {
+    if (!canBuildBot) {
+      setLastInteraction('Not enough resources to build a new bot!')
+      return
+    }
+
+    // Deduct resources
+    setResources(prevResources => {
+      const newResources = [...prevResources]
+      buildBotCost.forEach(cost => {
+        const idx = newResources.findIndex(r => r.name === cost.name)
+        if (idx !== -1) {
+          newResources[idx].amount -= cost.amount
+        }
+      })
+      return newResources
+    })
+
+    // Create new bot
+    const newBotId = `bot-${bots.length + 1}`
+    const newBot: Bot = {
+      id: newBotId,
+      name: `BOT-${bots.length + 1}`,
+      energy: 100,
+      happiness: 100,
+      upgrades: [
+        {
+          name: 'Battery Boost',
+          cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }],
+          applied: false,
+          effect: 'Increases energy gain from charging'
+        },
+        {
+          name: 'Happy Circuits',
+          cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }],
+          applied: false,
+          effect: 'Reduces happiness loss from missions'
+        }
+      ],
+      isOnMission: false,
+      missionTimeLeft: null,
+      asciiArt: robotNewBot // Assign different ASCII art
+    }
+
+    setBots(prevBots => [...prevBots, newBot])
+    setActiveBot(newBotId)
+    setLastInteraction(`New bot built: ${newBot.name}!`)
+  }
+
   return (
     <div className="terminal-container">
       <div className="relative screen rounded-xl overflow-hidden shadow-[0_0_20px_rgba(74,246,38,0.2)] border border-[#4af626]/20 crt">
@@ -296,6 +380,23 @@ const RobotPet = () => {
             <div>SYSTEM ACTIVE...</div>
           </div>
           
+          {/* Bot Selection */}
+          <div className="mb-4 text-center">
+            <label htmlFor="bot-select" className="text-xs terminal-glow opacity-70 mr-2">
+              {'>>'} SELECT BOT:
+            </label>
+            <select
+              id="bot-select"
+              value={activeBot}
+              onChange={(e) => setActiveBot(e.target.value)}
+              className="terminal-glow px-2 py-1 border border-[#4af626]/50 bg-transparent text-[#4af626] rounded"
+            >
+              {bots.map(bot => (
+                <option key={bot.id} value={bot.id}>{bot.name}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Robot Display */}
           <div className="relative">
             <pre className="text-3xl whitespace-pre mb-4 leading-tight font-mono text-[#4af626] terminal-glow">
@@ -353,6 +454,21 @@ const RobotPet = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Build Bot */}
+              <div>
+                <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} BUILD BOT</div>
+                <button
+                  onClick={buildBot}
+                  disabled={!canBuildBot}
+                  className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
+                >
+                  [BUILD NEW BOT]
+                  <div className="text-xs opacity-70 mt-1 pl-2">
+                    {'>>'} Cost: {buildBotCost.map(c => `${c.amount} ${c.name}`).join(', ')}
+                  </div>
+                </button>
               </div>
             </div>
 
