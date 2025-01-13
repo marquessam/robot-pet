@@ -60,41 +60,68 @@ const angryFace2 = "[./--\\.]";
 
 // Define multiple ASCII templates for unique bot appearances
 const generateAsciiBotTemplate = (emoji: string, face: string, template: number): string => {
-  switch(template) {
+  switch (template) {
+    // Template #1
     case 1:
       return `
-╭──────────╮
-│   ${face}    │
-│  ─────   │
-│ |=====|  │
-╰──────────╯
-│  ║   ║   │
-╰──╨───╨───╯
+        .=====.
+     .-(       )-.
+    /    ${face}    \\
+   |  |  =====  |  |
+    \\ |_________| /
+     '-._______.-'
+       //     \\\\
+      //       \\\\
+     []         []
 `;
+
+    // Template #2
     case 2:
       return `
-╭──────────╮
-│  [${face}]  │
-│  ─────   │
-│ |#####|  │
-╰──────────╯
-│  ||  ||  │
-╰──╨──╨───╯
+       _________
+     <( ${face} )>
+       \\-----/
+     .-[       ]-.
+     | |       | |
+     | |  ===  | |
+     | |  ===  | |
+     '-[___]__-'
+        |   |
+        |   |
+        |___|
 `;
+
+    // Template #3
     case 3:
       return `
-╭──────────╮
-│  (  ${face}  ) │
-│   -----  │
-│  |=====| │
-╰──────────╯
-│  ||  ||  │
-╰──╨──╨───╯
+      ___________
+     /           \\
+    |    ${face}    |
+     \\     ---     /
+      |   (===)   |
+   .--'    \\_/    '--.
+   |                 |
+    \\               /
+     '-------------'
 `;
+
+    // Fallback (in case something else is passed)
     default:
-      return generateAsciiBotTemplate(emoji, face, 1);
-  }
+      return `
+       _________
+     <( ${face} )>
+       \\-----/
+     .-[       ]-.
+     | |       | |
+     | |  ===  | |
+     | |  ===  | |
+     '-[___]__-'
+        |   |
+        |   |
+        |___|
+`;
 };
+
 
 const RobotPet = () => {
   const [cursorVisible, setCursorVisible] = useState(true);
@@ -345,7 +372,7 @@ const RobotPet = () => {
           </div>
 
           {/* Bot Switching Buttons */}
-          <div className="mb-4 text-center">
+          <div className="mb-6 text-center">
             <span className="text-xs terminal-glow opacity-70 mr-2">{'>>'} SWITCH BOT:</span>
             {bots.map(bot => (
               <button
@@ -359,10 +386,10 @@ const RobotPet = () => {
             ))}
           </div>
 
-          {/* 2x2 Grid Layout */}
-          <div className="grid grid-cols-2 gap-6 w-full">
-            {/* Top Left: Bot Display with Charge/Play buttons */}
-            <div className="mb-6 text-center">
+          {/* Main 3-column layout: Left = ASCII Bot, Middle = Stats+Upgrades, Right = Missions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+            {/* Left Column: ASCII Bot + Charge/Play */}
+            <div className="text-center mb-6">
               <pre className="text-3xl whitespace-pre leading-tight terminal-glow">
                 {currentBot.asciiArt}
               </pre>
@@ -389,45 +416,45 @@ const RobotPet = () => {
               </div>
             </div>
 
-            {/* Top Right: Bot Stats and Installed Upgrades */}
-            <div className="stats-readout border border-[#4af626]/30 p-4 rounded">
-              <h2 className="text-lg mb-2 terminal-glow">Bot Stats</h2>
-              <div className="mb-4">
-                <p><strong>Name:</strong> {currentBot.name}</p>
-                <p><strong>Energy:</strong> ⚡ {currentBot.energy}%</p>
-                <p><strong>Happiness:</strong> ❤️ {currentBot.happiness}%</p>
+            {/* Middle Column: Bot Stats + Upgrades */}
+            <div>
+              <div className="stats-readout border border-[#4af626]/30 p-4 rounded mb-6">
+                <h2 className="text-lg mb-2 terminal-glow">Bot Stats</h2>
+                <div className="mb-4">
+                  <p><strong>Name:</strong> {currentBot.name}</p>
+                  <p><strong>Energy:</strong> ⚡ {currentBot.energy}%</p>
+                  <p><strong>Happiness:</strong> ❤️ {currentBot.happiness}%</p>
+                </div>
               </div>
-              <h3 className="text-md mb-2 terminal-glow">Upgrades Installed:</h3>
-              <ul className="list-disc list-inside">
-                {currentBot.upgrades.filter(u => u.applied).length === 0 ? (
-                  <li className="mb-1 text-gray-500">No upgrades installed.</li>
-                ) : (
-                  currentBot.upgrades.map(upgrade => 
-                    upgrade.applied && (
-                      <li key={upgrade.name} className="mb-1">
-                        <span className="text-green-400">
-                          {upgrade.name} (Installed)
-                        </span>
-                        <p className="text-xs opacity-70 ml-4">{upgrade.effect}</p>
-                      </li>
-                    )
-                  )
-                )}
-              </ul>
+              <div className="border border-[#4af626]/30 p-4 rounded">
+                <h3 className="text-md mb-2 terminal-glow">Upgrades Installed / Available</h3>
+                <div className="space-y-2">
+                  {currentBot.upgrades.map(upgrade => (
+                    <div key={upgrade.name} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-400">
+                          {upgrade.name} {upgrade.applied ? '(Installed)' : ''}
+                        </p>
+                        <p className="text-xs opacity-70">{upgrade.effect}</p>
+                      </div>
+                      {!upgrade.applied && (
+                        <button
+                          onClick={() => applyUpgrade(upgrade)}
+                          className="text-xs ml-4 px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:cursor-not-allowed text-[#4af626]"
+                        >
+                          APPLY
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {/* Bottom Left: Inventory above Missions */}
-            <div className="space-y-6">
-              <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} INVENTORY</div>
-              <div className="space-y-1 text-center mb-6">
-                {resources.map(resource => (
-                  <div key={resource.name} className="font-mono text-sm terminal-glow">
-                    [{resource.name.toUpperCase()}: {resource.amount}]
-                  </div>
-                ))}
-              </div>
+            {/* Right Column: Missions */}
+            <div>
               <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} MISSIONS</div>
-              <div className="space-y-1 flex flex-col items-center">
+              <div className="space-y-2 flex flex-col items-center border border-[#4af626]/30 p-4 rounded">
                 {missions.map(mission => (
                   <button
                     key={mission.name}
@@ -440,48 +467,42 @@ const RobotPet = () => {
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Bottom Right: Upgrades */}
-            <div className="space-y-6">
-              <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} UPGRADES</div>
-              <div className="space-y-1 flex flex-col items-center">
-                {currentBot.upgrades.map(upgrade => (
-                  <button
-                    key={upgrade.name}
-                    onClick={() => applyUpgrade(upgrade)}
-                    disabled={upgrade.applied}
-                    className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
-                  >
-                    [{upgrade.name}] {upgrade.applied ? '*' : ''}
-                    <div className="text-xs opacity-70 mt-1 pl-2">
-                      {'>>'} Cost: {upgrade.cost.map(c => `${c.amount} ${c.name}`).join(', ')}
-                    </div>
-                  </button>
+          {/* Row for Inventory (left) and Build Bot (right) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            {/* Left side: Inventory */}
+            <div className="border border-[#4af626]/30 p-4 rounded">
+              <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} INVENTORY</div>
+              <div className="space-y-1 text-center">
+                {resources.map(resource => (
+                  <div key={resource.name} className="font-mono text-sm terminal-glow">
+                    [{resource.name.toUpperCase()}: {resource.amount}]
+                  </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Right side: Build Bot */}
+            <div className="border border-[#4af626]/30 p-4 rounded text-center">
+              <div className="text-xs mb-2 text-[#4af626]/50">{'>>'} BUILD NEW BOT</div>
+              <button
+                onClick={buildBot}
+                disabled={!canBuildBot}
+                className="w-full text-center text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
+              >
+                [BUILD NEW BOT]
+              </button>
+              <div className="text-xs opacity-70 mt-1">
+                {'>>'} Cost: {buildBotCost.map(c => `${c.amount} ${c.name}`).join(', ')}
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-6 mt-6">
-            <div className="space-y-6">
-              <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} BUILD BOT</div>
-              <button
-                onClick={buildBot}
-                disabled={!canBuildBot}
-                className="w-full text-left text-sm terminal-glow px-2 py-1 border border-[#4af626]/50 hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
-              >
-                [BUILD NEW BOT]
-                <div className="text-xs opacity-70 mt-1 pl-2">
-                  {'>>'} Cost: {buildBotCost.map(c => `${c.amount} ${c.name}`).join(', ')}
-                </div>
-              </button>
-            </div>
-            {/* Placeholder for alignment if needed */}
-            <div></div>
-          </div>
-
+          {/* Last Interaction / Log */}
           <div className="text-xs text-[#4af626]/70 border-t border-[#4af626]/20 mt-6 pt-4 terminal-glow text-center">
-            {'>>'} {lastInteraction || 'Awaiting command...'}{cursorVisible ? '_' : ' '}
+            {'>>'} {lastInteraction || 'Awaiting command...'}
+            {cursorVisible ? '_' : ' '}
           </div>
         </div>
       </div>
@@ -490,3 +511,4 @@ const RobotPet = () => {
 };
 
 export default RobotPet;
+
