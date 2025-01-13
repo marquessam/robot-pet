@@ -1,5 +1,5 @@
-'use client'
-import React, { useState, useEffect } from 'react'
+'use client';
+import React, { useState, useEffect } from 'react';
 
 interface Bot {
   id: string;
@@ -34,31 +34,82 @@ interface Upgrade {
 }
 
 const defaultUpgrades: Upgrade[] = [
-  { name: 'Battery Boost', cost: [{ name: 'magnets', amount: 3 }, { name: 'wires', amount: 2 }], applied: false, effect: 'Increases energy gain from charging' },
-  { name: 'Happy Circuits', cost: [{ name: 'bolts', amount: 4 }, { name: 'wires', amount: 3 }], applied: false, effect: 'Reduces happiness loss from missions' },
-  { name: 'Advanced Sensors', cost: [{ name: 'circuit', amount: 2 }, { name: 'magnets', amount: 2 }], applied: false, effect: 'Increases mission success rate' },
-  { name: 'Reinforced Chassis', cost: [{ name: 'bolts', amount: 6 }, { name: 'wires', amount: 4 }], applied: false, effect: 'Reduces energy loss during missions' },
-  { name: 'Extended Battery', cost: [{ name: 'bolts', amount: 2 }, { name: 'circuit', amount: 1 }], applied: false, effect: 'Increases max energy' },
-  { name: 'Enhanced AI', cost: [{ name: 'magnets', amount: 4 }, { name: 'circuit', amount: 3 }], applied: false, effect: 'Improves decision making' }
+  {
+    name: 'Battery Boost',
+    cost: [
+      { name: 'magnets', amount: 3 },
+      { name: 'wires', amount: 2 },
+    ],
+    applied: false,
+    effect: 'Increases energy gain from charging',
+  },
+  {
+    name: 'Happy Circuits',
+    cost: [
+      { name: 'bolts', amount: 4 },
+      { name: 'wires', amount: 3 },
+    ],
+    applied: false,
+    effect: 'Reduces happiness loss from missions',
+  },
+  {
+    name: 'Advanced Sensors',
+    cost: [
+      { name: 'circuit', amount: 2 },
+      { name: 'magnets', amount: 2 },
+    ],
+    applied: false,
+    effect: 'Increases mission success rate',
+  },
+  {
+    name: 'Reinforced Chassis',
+    cost: [
+      { name: 'bolts', amount: 6 },
+      { name: 'wires', amount: 4 },
+    ],
+    applied: false,
+    effect: 'Reduces energy loss during missions',
+  },
+  {
+    name: 'Extended Battery',
+    cost: [
+      { name: 'bolts', amount: 2 },
+      { name: 'circuit', amount: 1 },
+    ],
+    applied: false,
+    effect: 'Increases max energy',
+  },
+  {
+    name: 'Enhanced AI',
+    cost: [
+      { name: 'magnets', amount: 4 },
+      { name: 'circuit', amount: 3 },
+    ],
+    applied: false,
+    effect: 'Improves decision making',
+  },
 ];
 
 const initialResources: Resource[] = [
   { name: 'bolts', amount: 0 },
   { name: 'magnets', amount: 0 },
   { name: 'wires', amount: 0 },
-  { name: 'circuit', amount: 0 }
+  { name: 'circuit', amount: 0 },
 ];
 
-const botEmojis = ["🤖", "🐱", "🐶", "🦊", "🐻‍❄️", "🦾", "👾"];
+const botEmojis = ['🤖', '🐱', '🐶', '🦊', '🐻‍❄️', '🦾', '👾'];
 
-const normalFace = "[ o--o ]";
-const blinkFace = "[ >--< ]";
-const happyFace1 = "[^--^]";
-const happyFace2 = "[ >--< ]";
-const angryFace1 = "[.\\--/.]";
-const angryFace2 = "[./--\\.]";
+const normalFace = '[ o--o ]';
+const blinkFace = '[ >--< ]';
+const happyFace1 = '[^--^]';
+const happyFace2 = '[ >--< ]';
+const angryFace1 = '[.\\--/.]';
+const angryFace2 = '[./--\\.]';
 
-// Define multiple ASCII templates for unique bot appearances
+/**
+ * Returns one of three mechanical ASCII robot templates, injecting the chosen `face`.
+ * `template` should be 1, 2, or 3.
+ */
 const generateAsciiBotTemplate = (emoji: string, face: string, template: number): string => {
   switch (template) {
     // Template #1
@@ -105,7 +156,7 @@ const generateAsciiBotTemplate = (emoji: string, face: string, template: number)
      '-------------'
 `;
 
-    // Fallback (in case something else is passed)
+    // Fallback
     default:
       return `
        _________
@@ -120,61 +171,74 @@ const generateAsciiBotTemplate = (emoji: string, face: string, template: number)
         |   |
         |___|
 `;
+  }
 };
-
 
 const RobotPet = () => {
   const [cursorVisible, setCursorVisible] = useState(true);
   const [resources, setResources] = useState<Resource[]>(initialResources);
-  
-  const [bots, setBots] = useState<Bot[]>([{
-    id: 'bot-1',
-    name: 'SM-33',
-    energy: 100,
-    happiness: 100,
-    upgrades: defaultUpgrades.map(upg => ({ ...upg })),
-    isOnMission: false,
-    missionTimeLeft: null,
-    asciiArt: generateAsciiBotTemplate("🤖", normalFace, 1)
-  }]);
+
+  const [bots, setBots] = useState<Bot[]>([
+    {
+      id: 'bot-1',
+      name: 'SM-33',
+      energy: 100,
+      happiness: 100,
+      upgrades: defaultUpgrades.map((upg) => ({ ...upg })),
+      isOnMission: false,
+      missionTimeLeft: null,
+      asciiArt: generateAsciiBotTemplate('🤖', normalFace, 1),
+    },
+  ]);
 
   const [activeBot, setActiveBot] = useState<string>('bot-1');
   const [lastInteraction, setLastInteraction] = useState('');
 
-  const currentBot = bots.find(bot => bot.id === activeBot)!;
+  const currentBot = bots.find((bot) => bot.id === activeBot)!;
 
   const updateBotState = (botId: string, updates: Partial<Bot>) => {
-    setBots(prevBots =>
-      prevBots.map(bot => bot.id === botId ? { ...bot, ...updates } : bot)
+    setBots((prevBots) =>
+      prevBots.map((bot) => (bot.id === botId ? { ...bot, ...updates } : bot))
     );
   };
 
+  // Cursor blink effect
   useEffect(() => {
-    const interval = setInterval(() => setCursorVisible(v => !v), 530);
+    const interval = setInterval(() => setCursorVisible((v) => !v), 530);
     return () => clearInterval(interval);
   }, []);
 
+  // Idle blinking/facial expression changes
   useEffect(() => {
     if (!currentBot.isOnMission) {
       let frames = [blinkFace, normalFace];
-      if (currentBot.happiness > 80) frames = [happyFace1, happyFace2];
-      else if (currentBot.happiness < 20) frames = [angryFace1, angryFace2];
+      if (currentBot.happiness > 80) {
+        frames = [happyFace1, happyFace2];
+      } else if (currentBot.happiness < 20) {
+        frames = [angryFace1, angryFace2];
+      }
+
       let index = 0;
       const blinkInterval = setInterval(() => {
-        // Use the existing template (template 1) for blinking
-        updateBotState(currentBot.id, { asciiArt: generateAsciiBotTemplate("🤖", frames[index], 1) });
+        // Always use template #1 for blinking/face animations
+        updateBotState(currentBot.id, {
+          asciiArt: generateAsciiBotTemplate('🤖', frames[index], 1),
+        });
         index = (index + 1) % frames.length;
       }, 1000);
+
       return () => clearInterval(blinkInterval);
     }
   }, [currentBot.isOnMission, currentBot.happiness, currentBot.id]);
 
+  // If mission is almost done (3 seconds left), show "Returning..."
   useEffect(() => {
     if (currentBot.isOnMission && currentBot.missionTimeLeft !== null && currentBot.missionTimeLeft <= 3) {
-      updateBotState(currentBot.id, { asciiArt: "Returning..." });
+      updateBotState(currentBot.id, { asciiArt: 'Returning...' });
     }
   }, [currentBot.isOnMission, currentBot.missionTimeLeft, currentBot.id]);
 
+  // If bot energy hits 0, the bot "dies" and you salvage it
   useEffect(() => {
     if (currentBot && currentBot.energy <= 0) {
       setLastInteraction(`${currentBot.name} has died.`);
@@ -182,43 +246,101 @@ const RobotPet = () => {
         { name: 'bolts', amount: 5 },
         { name: 'magnets', amount: 2 },
         { name: 'wires', amount: 2 },
-        { name: 'circuit', amount: 1 }
+        { name: 'circuit', amount: 1 },
       ];
-      setResources(prev => {
+      setResources((prev) => {
         const newResources = [...prev];
-        salvage.forEach(s => {
-          const idx = newResources.findIndex(r => r.name === s.name);
+        salvage.forEach((s) => {
+          const idx = newResources.findIndex((r) => r.name === s.name);
           if (idx !== -1) newResources[idx].amount += s.amount;
         });
         return newResources;
       });
-      setBots(prevBots => {
-        const updatedBots = prevBots.filter(bot => bot.id !== currentBot.id);
+      setBots((prevBots) => {
+        const updatedBots = prevBots.filter((bot) => bot.id !== currentBot.id);
         if (updatedBots.length > 0) setActiveBot(updatedBots[0].id);
         else setActiveBot('');
         return updatedBots;
       });
     }
-  }, [currentBot?.energy]);
+  }, [currentBot?.energy, currentBot]);
 
+  // Decrement mission timer
   useEffect(() => {
     if (!currentBot?.isOnMission) return;
+
     const timer = setInterval(() => {
       if (currentBot.missionTimeLeft !== null) {
         updateBotState(currentBot.id, {
-          missionTimeLeft: Math.max(0, currentBot.missionTimeLeft - 1)
+          missionTimeLeft: Math.max(0, currentBot.missionTimeLeft - 1),
         });
       }
     }, 1000);
+
     return () => clearInterval(timer);
   }, [currentBot?.id, currentBot?.isOnMission, currentBot?.missionTimeLeft]);
 
   const missions: Mission[] = [
-    { name: 'Scrap Yard Search', energyCost: 20, happinessCost: 10, duration: 10, requiredBatteryLevel: 30, rewards: [{ name: 'bolts', amount: 2 }, { name: 'wires', amount: 1 }] },
-    { name: 'Factory Exploration', energyCost: 40, happinessCost: 20, duration: 20, requiredBatteryLevel: 50, rewards: [{ name: 'magnets', amount: 2 }, { name: 'wires', amount: 2 }, { name: 'bolts', amount: 1 }] },
-    { name: 'Abandoned Warehouse', energyCost: 30, happinessCost: 15, duration: 15, requiredBatteryLevel: 40, rewards: [{ name: 'wires', amount: 3 }, { name: 'bolts', amount: 1 }, { name: 'circuit', amount: 1 }] },
-    { name: 'Underground Lab', energyCost: 50, happinessCost: 25, duration: 30, requiredBatteryLevel: 60, rewards: [{ name: 'magnets', amount: 4 }, { name: 'circuit', amount: 2 }, { name: 'wires', amount: 2 }] },
-    { name: 'Space Junk Salvage', energyCost: 70, happinessCost: 30, duration: 40, requiredBatteryLevel: 80, rewards: [{ name: 'bolts', amount: 5 }, { name: 'magnets', amount: 3 }, { name: 'wires', amount: 3 }, { name: 'circuit', amount: 4 }] }
+    {
+      name: 'Scrap Yard Search',
+      energyCost: 20,
+      happinessCost: 10,
+      duration: 10,
+      requiredBatteryLevel: 30,
+      rewards: [
+        { name: 'bolts', amount: 2 },
+        { name: 'wires', amount: 1 },
+      ],
+    },
+    {
+      name: 'Factory Exploration',
+      energyCost: 40,
+      happinessCost: 20,
+      duration: 20,
+      requiredBatteryLevel: 50,
+      rewards: [
+        { name: 'magnets', amount: 2 },
+        { name: 'wires', amount: 2 },
+        { name: 'bolts', amount: 1 },
+      ],
+    },
+    {
+      name: 'Abandoned Warehouse',
+      energyCost: 30,
+      happinessCost: 15,
+      duration: 15,
+      requiredBatteryLevel: 40,
+      rewards: [
+        { name: 'wires', amount: 3 },
+        { name: 'bolts', amount: 1 },
+        { name: 'circuit', amount: 1 },
+      ],
+    },
+    {
+      name: 'Underground Lab',
+      energyCost: 50,
+      happinessCost: 25,
+      duration: 30,
+      requiredBatteryLevel: 60,
+      rewards: [
+        { name: 'magnets', amount: 4 },
+        { name: 'circuit', amount: 2 },
+        { name: 'wires', amount: 2 },
+      ],
+    },
+    {
+      name: 'Space Junk Salvage',
+      energyCost: 70,
+      happinessCost: 30,
+      duration: 40,
+      requiredBatteryLevel: 80,
+      rewards: [
+        { name: 'bolts', amount: 5 },
+        { name: 'magnets', amount: 3 },
+        { name: 'wires', amount: 3 },
+        { name: 'circuit', amount: 4 },
+      ],
+    },
   ];
 
   const startMission = (mission: Mission) => {
@@ -232,7 +354,8 @@ const RobotPet = () => {
     }
 
     const newEnergy = Math.max(0, currentBot.energy - mission.energyCost);
-    const happinessCost = currentBot.upgrades.find(u => u.name === 'Happy Circuits' && u.applied)
+    // If 'Happy Circuits' is applied, reduce happiness cost by 30%
+    const happinessCost = currentBot.upgrades.find((u) => u.name === 'Happy Circuits' && u.applied)
       ? Math.floor(mission.happinessCost * 0.7)
       : mission.happinessCost;
     const newHappiness = Math.max(0, currentBot.happiness - happinessCost);
@@ -242,11 +365,12 @@ const RobotPet = () => {
       missionTimeLeft: mission.duration,
       energy: newEnergy,
       happiness: newHappiness,
-      asciiArt: "← Leaving..."
+      asciiArt: '← Leaving...',
     });
 
     setLastInteraction(`Started mission: ${mission.name}`);
 
+    // After `mission.duration` seconds, mark the mission complete
     setTimeout(() => {
       completeMission(mission);
     }, mission.duration * 1000);
@@ -256,13 +380,13 @@ const RobotPet = () => {
     updateBotState(currentBot.id, {
       isOnMission: false,
       missionTimeLeft: null,
-      asciiArt: generateAsciiBotTemplate("🤖", normalFace, 1)
+      asciiArt: generateAsciiBotTemplate('🤖', normalFace, 1),
     });
 
-    setResources(prevResources => {
+    setResources((prevResources) => {
       const newResources = [...prevResources];
-      mission.rewards.forEach(reward => {
-        const idx = newResources.findIndex(r => r.name === reward.name);
+      mission.rewards.forEach((reward) => {
+        const idx = newResources.findIndex((r) => r.name === reward.name);
         if (idx !== -1) {
           newResources[idx].amount += reward.amount;
         }
@@ -274,7 +398,8 @@ const RobotPet = () => {
   };
 
   const charge = () => {
-    const chargeAmount = currentBot.upgrades.find(u => u.name === 'Battery Boost' && u.applied) ? 30 : 20;
+    // If 'Battery Boost' is installed, charge +30, else +20
+    const chargeAmount = currentBot.upgrades.find((u) => u.name === 'Battery Boost' && u.applied) ? 30 : 20;
     const newEnergy = Math.min(100, currentBot.energy + chargeAmount);
     updateBotState(currentBot.id, { energy: newEnergy });
     setLastInteraction('Charging... Battery replenished!');
@@ -285,6 +410,7 @@ const RobotPet = () => {
       setLastInteraction('Robot is too tired to play...');
       return;
     }
+    // Playing costs 10 energy, grants +15 happiness (cap at 100)
     const newEnergy = Math.max(0, currentBot.energy - 10);
     const newHappiness = Math.min(100, currentBot.happiness + 15);
     updateBotState(currentBot.id, { energy: newEnergy, happiness: newHappiness });
@@ -292,26 +418,29 @@ const RobotPet = () => {
   };
 
   const applyUpgrade = (upgrade: Upgrade) => {
-    const canAfford = upgrade.cost.every(cost => {
-      const resource = resources.find(r => r.name === cost.name);
+    // Check if we can afford the upgrade's resource cost
+    const canAfford = upgrade.cost.every((cost) => {
+      const resource = resources.find((r) => r.name === cost.name);
       return resource && resource.amount >= cost.amount;
     });
     if (!canAfford) {
       setLastInteraction('Not enough resources for this upgrade!');
       return;
     }
-    setResources(prevResources => {
+
+    // Deduct cost
+    setResources((prevResources) => {
       const newResources = [...prevResources];
-      upgrade.cost.forEach(cost => {
-        const idx = newResources.findIndex(r => r.name === cost.name);
+      upgrade.cost.forEach((cost) => {
+        const idx = newResources.findIndex((r) => r.name === cost.name);
         if (idx !== -1) newResources[idx].amount -= cost.amount;
       });
       return newResources;
     });
+
+    // Mark upgrade as applied
     updateBotState(currentBot.id, {
-      upgrades: currentBot.upgrades.map(u =>
-        u.name === upgrade.name ? { ...u, applied: true } : u
-      )
+      upgrades: currentBot.upgrades.map((u) => (u.name === upgrade.name ? { ...u, applied: true } : u)),
     });
     setLastInteraction(`Upgrade applied: ${upgrade.name}!`);
   };
@@ -319,11 +448,11 @@ const RobotPet = () => {
   const buildBotCost: Resource[] = [
     { name: 'bolts', amount: 10 },
     { name: 'magnets', amount: 5 },
-    { name: 'wires', amount: 5 }
+    { name: 'wires', amount: 5 },
   ];
 
-  const canBuildBot = buildBotCost.every(cost => {
-    const resource = resources.find(r => r.name === cost.name);
+  const canBuildBot = buildBotCost.every((cost) => {
+    const resource = resources.find((r) => r.name === cost.name);
     return resource && resource.amount >= cost.amount;
   });
 
@@ -332,31 +461,37 @@ const RobotPet = () => {
       setLastInteraction('Not enough resources to build a new bot!');
       return;
     }
-    setResources(prevResources => {
+
+    // Deduct resources for building the new bot
+    setResources((prevResources) => {
       const newResources = [...prevResources];
-      buildBotCost.forEach(cost => {
-        const idx = newResources.findIndex(r => r.name === cost.name);
+      buildBotCost.forEach((cost) => {
+        const idx = newResources.findIndex((r) => r.name === cost.name);
         if (idx !== -1) newResources[idx].amount -= cost.amount;
       });
       return newResources;
     });
+
+    // Create a new bot with random name, random emoji, random template
     const newBotId = `bot-${bots.length + 1}`;
     const botNames = ['C3-vxx', 'ZX-12', 'VX-99', 'SM-33'];
     const randomName = botNames[bots.length % botNames.length] + `-${bots.length + 1}`;
     const randomEmoji = botEmojis[Math.floor(Math.random() * botEmojis.length)];
     const template = Math.floor(Math.random() * 3) + 1;
     const asciiArt = generateAsciiBotTemplate(randomEmoji, normalFace, template);
+
     const newBot: Bot = {
       id: newBotId,
       name: randomName,
       energy: 100,
       happiness: 100,
-      upgrades: defaultUpgrades.map(upg => ({ ...upg })),
+      upgrades: defaultUpgrades.map((upg) => ({ ...upg })),
       isOnMission: false,
       missionTimeLeft: null,
-      asciiArt
+      asciiArt,
     };
-    setBots(prevBots => [...prevBots, newBot]);
+
+    setBots((prevBots) => [...prevBots, newBot]);
     setActiveBot(newBotId);
     setLastInteraction(`New bot built: ${newBot.name}!`);
   };
@@ -365,7 +500,7 @@ const RobotPet = () => {
     <div className="terminal-container">
       <div className="relative screen rounded-xl overflow-hidden shadow-[0_0_20px_rgba(74,246,38,0.2)] border border-[#4af626]/20 crt">
         <div className="relative font-mono text-[#4af626] p-8">
-          {/* Title */}
+          {/* Title / Header */}
           <div className="text-xs mb-6 flex flex-col gap-1 terminal-glow opacity-50 text-center">
             <div>ROBOPET v1.0.0 - TERMINAL MODE</div>
             <div>SYSTEM ACTIVE...</div>
@@ -374,7 +509,7 @@ const RobotPet = () => {
           {/* Bot Switching Buttons */}
           <div className="mb-6 text-center">
             <span className="text-xs terminal-glow opacity-70 mr-2">{'>>'} SWITCH BOT:</span>
-            {bots.map(bot => (
+            {bots.map((bot) => (
               <button
                 key={bot.id}
                 onClick={() => setActiveBot(bot.id)}
@@ -394,19 +529,17 @@ const RobotPet = () => {
                 {currentBot.asciiArt}
               </pre>
               {currentBot.isOnMission && currentBot.missionTimeLeft !== null && (
-                <div className="text-xl terminal-glow animate-pulse">
-                  T-{currentBot.missionTimeLeft}s
-                </div>
+                <div className="text-xl terminal-glow animate-pulse">T-{currentBot.missionTimeLeft}s</div>
               )}
               <div className="flex gap-2 justify-center mt-4">
-                <button 
+                <button
                   onClick={charge}
                   disabled={currentBot.isOnMission}
                   className="px-3 py-1 border border-[#4af626]/50 terminal-glow hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
                 >
                   [CHARGE]
                 </button>
-                <button 
+                <button
                   onClick={play}
                   disabled={currentBot.energy < 10 || currentBot.isOnMission}
                   className="px-3 py-1 border border-[#4af626]/50 terminal-glow hover:bg-[#4af626]/10 hover:border-[#4af626] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-150 text-[#4af626]"
@@ -421,15 +554,21 @@ const RobotPet = () => {
               <div className="stats-readout border border-[#4af626]/30 p-4 rounded mb-6">
                 <h2 className="text-lg mb-2 terminal-glow">Bot Stats</h2>
                 <div className="mb-4">
-                  <p><strong>Name:</strong> {currentBot.name}</p>
-                  <p><strong>Energy:</strong> ⚡ {currentBot.energy}%</p>
-                  <p><strong>Happiness:</strong> ❤️ {currentBot.happiness}%</p>
+                  <p>
+                    <strong>Name:</strong> {currentBot.name}
+                  </p>
+                  <p>
+                    <strong>Energy:</strong> ⚡ {currentBot.energy}%
+                  </p>
+                  <p>
+                    <strong>Happiness:</strong> ❤️ {currentBot.happiness}%
+                  </p>
                 </div>
               </div>
               <div className="border border-[#4af626]/30 p-4 rounded">
                 <h3 className="text-md mb-2 terminal-glow">Upgrades Installed / Available</h3>
                 <div className="space-y-2">
-                  {currentBot.upgrades.map(upgrade => (
+                  {currentBot.upgrades.map((upgrade) => (
                     <div key={upgrade.name} className="flex items-center justify-between">
                       <div>
                         <p className="text-green-400">
@@ -455,7 +594,7 @@ const RobotPet = () => {
             <div>
               <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} MISSIONS</div>
               <div className="space-y-2 flex flex-col items-center border border-[#4af626]/30 p-4 rounded">
-                {missions.map(mission => (
+                {missions.map((mission) => (
                   <button
                     key={mission.name}
                     onClick={() => startMission(mission)}
@@ -475,7 +614,7 @@ const RobotPet = () => {
             <div className="border border-[#4af626]/30 p-4 rounded">
               <div className="text-xs mb-2 text-[#4af626]/50 text-center">{'>>'} INVENTORY</div>
               <div className="space-y-1 text-center">
-                {resources.map(resource => (
+                {resources.map((resource) => (
                   <div key={resource.name} className="font-mono text-sm terminal-glow">
                     [{resource.name.toUpperCase()}: {resource.amount}]
                   </div>
@@ -494,7 +633,7 @@ const RobotPet = () => {
                 [BUILD NEW BOT]
               </button>
               <div className="text-xs opacity-70 mt-1">
-                {'>>'} Cost: {buildBotCost.map(c => `${c.amount} ${c.name}`).join(', ')}
+                {'>>'} Cost: {buildBotCost.map((c) => `${c.amount} ${c.name}`).join(', ')}
               </div>
             </div>
           </div>
@@ -511,4 +650,3 @@ const RobotPet = () => {
 };
 
 export default RobotPet;
-
