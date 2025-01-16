@@ -596,79 +596,163 @@ const RobotPet = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#9CA384] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#9CA384] border-8 border-[#1F1F1F] rounded-lg p-4">
-        {/* GameBoy-style screen */}
-        <div className="bg-[#1F1F1F] p-4 rounded-lg">
-          {/* Main display area with that classic greenish tint */}
-          <div className="bg-[#9BBC0F] p-2 rounded font-mono text-[#0F380F]">
-            {/* Header with stats */}
-            <div className="border-b-2 border-[#0F380F] pb-2 mb-2">
-              <div className="flex justify-between">
-                <span>BOT:{currentBot.name}</span>
-                <span>PWR:{currentBot.energy}</span>
-              </div>
-              <div className="text-xs mt-1">
-                {resources.map((r) => (
-                  <span key={r.name} className="mr-2">
-                    {r.name}:{r.amount}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Stats display in Pokemon style */}
-            <div className="mb-4">
-              <div className="flex justify-between border-b border-[#0F380F]/50">
-                <span>ENRG</span>
-                <span>{currentBot.energy}/100</span>
-              </div>
-              <div className="flex justify-between border-b border-[#0F380F]/50">
-                <span>HAPP</span>
-                <span>{currentBot.happiness}/100</span>
-              </div>
-              <div className="flex justify-between border-b border-[#0F380F]/50">
-                <span>DMG</span>
-                <span>{currentBot.damage}/100</span>
-              </div>
-            </div>
-
-            {/* Menu */}
-            {currentMenu === 'main' && renderMainMenu()}
-            {currentMenu === 'missions' && renderMissionsMenu()}
-            {currentMenu === 'parts' && renderPartsMenu()}
-
-            {/* Message box */}
-            <div className="mt-4 p-2 border-2 border-[#0F380F] min-h-[4rem] text-sm">
-              {lastInteraction || 'What should BOT do?'}
-              {cursorVisible ? '▼' : ' '}
+    <div className="terminal-container">
+      <div className="relative screen rounded-xl overflow-hidden shadow-[0_0_20px_rgba(74,246,38,0.2)] border border-[#4af626]/20 crt">
+        <div className="relative font-mono text-[#4af626] p-8">
+          {/* Header Status */}
+          <div className="text-xs mb-6">
+            <div>BOT:{currentBot.name} PWR:{currentBot.energy}</div>
+            <div className="mt-1">
+              {resources.map((r) => (
+                <span key={r.name} className="mr-3">
+                  {r.name}:{r.amount}
+                </span>
+              ))}
             </div>
           </div>
-        </div>
 
-        {/* GameBoy-style controls */}
-        <div className="mt-4 flex justify-center gap-4">
-          <div className="flex flex-col items-center">
-            <div className="w-16 h-16 bg-[#1F1F1F] rounded-full flex items-center justify-center">
-              <div className="w-12 h-12 bg-[#1F1F1F] rounded-full border-4 border-[#9CA384]"></div>
+          {/* Main Layout - 3 columns */}
+          <div className="grid grid-cols-3 gap-8">
+            {/* Left Column - Bot Display */}
+            <div className="text-center">
+              <div className="mb-4">
+                <pre className="text-sm whitespace-pre terminal-glow">
+                  {currentBot.asciiArt || `
+        .=====.
+     .-(       )-.
+    /    [o--o]    \\
+   |  |  =====  |  |
+    \\ |_________| /
+     '-._______.-'
+       //     \\\\
+      //       \\\\
+     []         []
+                  `}
+                </pre>
+              </div>
+              {currentBot.isOnMission && (
+                <div className="text-sm terminal-glow animate-pulse">
+                  MISSION: {currentBot.missionTimeLeft}s
+                </div>
+              )}
             </div>
-            <span className="mt-1 text-xs text-[#1F1F1F]">D-PAD</span>
+
+            {/* Middle Column - Stats & Active Menu */}
+            <div>
+              {/* Stats */}
+              <div className="mb-4 space-y-1">
+                <div>ENRG{currentBot.energy}/100</div>
+                <div>HAPP{currentBot.happiness}/100</div>
+                <div>DMG{currentBot.damage}/100</div>
+              </div>
+
+              {/* Menu Content */}
+              <div className="space-y-2">
+                {currentMenu === 'parts' && (
+                  <>
+                    <div className="text-xs mb-2">>> BOT COMPONENTS</div>
+                    {currentBot.parts.map((part) => (
+                      <div key={part.partName} className="mb-3">
+                        <div className="flex justify-between items-center">
+                          <span>{part.partName}: LV{part.currentLevelIndex + 1}</span>
+                          <button
+                            onClick={() => upgradePart(currentBot.id, part.partName)}
+                            disabled={part.currentLevelIndex >= part.maxLevel}
+                            className="px-2 py-1 text-sm"
+                          >
+                            [UPGRADE]
+                          </button>
+                        </div>
+                        <div className="text-xs opacity-70 mt-1">
+                          {part.levels[part.currentLevelIndex].effectDescription}
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => setCurrentMenu('main')}
+                      className="w-full text-left"
+                    >
+                      [BACK]
+                    </button>
+                  </>
+                )}
+
+                {currentMenu === 'missions' && (
+                  <>
+                    <div className="text-xs mb-2">>> AVAILABLE MISSIONS</div>
+                    {missions.map((mission) => (
+                      <button
+                        key={mission.name}
+                        onClick={() => startMission(mission)}
+                        disabled={currentBot.isOnMission || currentBot.energy < mission.requiredBatteryLevel}
+                        className="w-full text-left mb-2"
+                      >
+                        [{mission.name}]
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCurrentMenu('main')}
+                      className="w-full text-left"
+                    >
+                      [BACK]
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column - Main Actions */}
+            <div>
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={charge} disabled={currentBot.isOnMission}>
+                  [CHARGE]
+                </button>
+                <button onClick={play} disabled={currentBot.energy < 10 || currentBot.isOnMission}>
+                  [PLAY]
+                </button>
+                <button onClick={() => repairBot(currentBot)}>
+                  [REPAIR]
+                </button>
+                <button onClick={() => setCurrentMenu('missions')}>
+                  [MISSION]
+                </button>
+                <button onClick={() => setCurrentMenu('parts')}>
+                  [PARTS]
+                </button>
+                <button onClick={buildBot} disabled={!canBuildBot}>
+                  [BUILD]
+                </button>
+              </div>
+
+              {/* Bot Switching */}
+              {bots.length > 1 && (
+                <div className="mt-4">
+                  <div className="text-xs mb-2">>> SWITCH BOT</div>
+                  <div className="flex flex-wrap gap-2">
+                    {bots.map((bot) => (
+                      <button
+                        key={bot.id}
+                        onClick={() => setActiveBot(bot.id)}
+                        disabled={bot.id === activeBot}
+                        className="px-2 py-1"
+                      >
+                        [{bot.name}]
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button 
-              onClick={() => setCurrentMenu('main')}
-              className="w-12 h-12 bg-[#1F1F1F] rounded-full flex items-center justify-center text-[#9CA384]"
-            >
-              B
-            </button>
-            <button className="w-12 h-12 bg-[#1F1F1F] rounded-full flex items-center justify-center text-[#9CA384]">
-              A
-            </button>
+
+          {/* Status Line */}
+          <div className="mt-6 pt-4 border-t border-[#4af626]/30 text-sm">
+            >> {lastInteraction || 'What should BOT do?'}
+            {cursorVisible ? '_' : ' '}
           </div>
         </div>
       </div>
     </div>
-  );
-};
+);
 
 export default RobotPet
